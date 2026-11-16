@@ -109,4 +109,46 @@
     <string name="theme_palette_cyan">Celeste</string>
     <string name="theme_palette_auto_unavailable">El color automático (Material You) requiere Android 12 o superior.</string>
     <string name="about_title">Datos</string>
+
+    <!-- Detalle de día -->
+    <string name="day_previous">Día anterior</string>
+    <string name="day_next">Día siguiente</string>
+    <string name="section_chart">Gráfico por hora</string>
+    <string name="section_table">Hora por hora</string>
+    <string name="table_hint">Deslizá la tabla hacia los lados para ver todas las columnas</string>
+    <string name="var_temp">Temperatura</string>
+    <string name="var_rain">Lluvia</string>
+    <string name="var_wind">Viento</string>
+    <string name="var_uv">UV</string>
+    <string name="var_humidity">Humedad</string>
+    <string name="var_pressure">Presión</string>
+    <string name="label_rain">Lluvia</string>
+    <string name="label_wind_max">Viento máx.</string>
+    <string name="label_uv_max">UV máximo</string>
+    <string name="info_hi_lo">Máx %1$s · Mín %2$s</string>
+    <string name="info_rain_day">Probabilidad máx. %1$s · Total %2$s</string>
+    <string name="info_wind_day">Máx. %1$s · Ráfagas %2$s</string>
+    <string name="info_uv_day">Máximo %1$s</string>
+    <string name="info_range">Entre %1$s y %2$s</string>
+    <string name="info_gusts">Ráfagas %1$s</string>
+    <string name="info_dew">Rocío %1$s</string>
+    <string name="legend_apparent">Línea punteada: sensación térmica</string>
+    <string name="legend_gusts">Línea punteada: ráfagas</string>
+    <string name="legend_rain">Probabilidad de lluvia por hora</string>
+    <string name="legend_tap">Tocá o arrastrá sobre el gráfico para ver cada hora</string>
+    <string name="col_hour">Hora</string>
+    <string name="col_temp">Temp.</string>
+    <string name="col_apparent">Sens.</string>
+    <string name="col_rain_prob">Lluvia</string>
+    <string name="col_rain_mm">mm</string>
+    <string name="col_wind">Viento\nkm/h</string>
+    <string name="col_gusts">Ráf.\nkm/h</string>
+    <string name="col_humidity">Hum.</string>
+    <string name="col_dew">Rocío</string>
+    <string name="col_uv">UV</string>
+    <string name="col_pressure">Presión\nhPa</string>
+    <string name="col_cloud">Nubes</string>
+    <string name="col_visibility">Visib.\nkm</string>
+    <string name="fmt_info" translatable="false">%1$s · %2$s</string>
+    <string name="fmt_info3" translatable="false">%1$s · %2$s · %3$s</string>
 </resources>

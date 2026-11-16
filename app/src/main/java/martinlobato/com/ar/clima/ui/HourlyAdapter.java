@@ -34,6 +34,16 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final List<Integer> rows = new ArrayList<>();
     private Forecast forecast;
     private int nowIndex;
+    private OnDayClickListener dayClickListener;
+
+    public interface OnDayClickListener {
+        /** @param time instante (epoch millis) de la primera hora del día tocado */
+        void onDayClick(long time);
+    }
+
+    public void setOnDayClickListener(OnDayClickListener listener) {
+        this.dayClickListener = listener;
+    }
     private SimpleDateFormat hourFmt;
     private SimpleDateFormat dayNameFmt;
     private SimpleDateFormat dayNumberFmt;
@@ -69,13 +79,6 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return forecast.hourly.time[hourIndex(rows.get(position))];
     }
 
-    /** Posición del separador (o de la primera hora) correspondiente al índice horario dado. */
-    public int positionOfHour(int hourIndex) {
-        int separator = rows.indexOf(-1 - hourIndex);
-        if (separator >= 0) return separator;
-        return Math.max(0, rows.indexOf(hourIndex));
-    }
-
     private static int hourIndex(int row) {
         return row >= 0 ? row : -1 - row;
     }
@@ -109,6 +112,10 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             ItemHourDayBinding b = ((DayHolder) holder).binding;
             b.tvDayName.setText(dayNameFmt.format(date).replace(".", ""));
             b.tvDayNumber.setText(dayNumberFmt.format(date));
+            final long time = forecast.hourly.time[i];
+            b.getRoot().setOnClickListener(v -> {
+                if (dayClickListener != null) dayClickListener.onDayClick(time);
+            });
             return;
         }
         ItemHourBinding b = ((HourHolder) holder).binding;

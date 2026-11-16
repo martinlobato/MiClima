@@ -31,7 +31,6 @@ import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.FragmentHomeBinding;
 import martinlobato.com.ar.clima.databinding.ItemDailyBinding;
-import martinlobato.com.ar.clima.databinding.ItemDataCellBinding;
 import martinlobato.com.ar.clima.databinding.ItemHourBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.Fmt;
@@ -96,6 +95,7 @@ public class HomeFragment extends Fragment {
         hourlyLayout = new LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false);
         binding.rvHourly.setLayoutManager(hourlyLayout);
         binding.rvHourly.setAdapter(hourlyAdapter);
+        hourlyAdapter.setOnDayClickListener(this::openDay);
         binding.rvHourly.setItemAnimator(null);
 
         // Alto exacto = alto de una celda de hora, para que las fichas de día (match_parent)
@@ -302,25 +302,15 @@ public class HomeFragment extends Fragment {
             row.tvMin.setText(Fmt.temp(d.tempMin[i]));
             row.tvMax.setText(Fmt.temp(d.tempMax[i]));
             row.rangeBar.setRange(d.tempMin[i], d.tempMax[i], globalMin, globalMax);
-            final int dayIndex = i;
-            row.dailyRoot.setOnClickListener(v -> showHoursOfDay(dayIndex, dayIndex == todayIdx));
+            final long dayTime = d.time[i];
+            row.dailyRoot.setOnClickListener(v -> openDay(dayTime));
             binding.listDaily.addView(row.getRoot());
         }
     }
 
-    /** Tocar un día lleva la tira horaria al comienzo de ese día y la trae a la vista. */
-    private void showHoursOfDay(int dayIndex, boolean isToday) {
-        if (forecast == null) return;
-        int position = 0;
-        if (!isToday) {
-            int hourIdx = forecast.firstHourIndexOfDay(dayIndex);
-            if (hourIdx < 0) return;
-            position = hourlyAdapter.positionOfHour(hourIdx);
-        }
-        hourlyLayout.scrollToPositionWithOffset(position, 0);
-        binding.rvHourly.post(this::updateHourlyDayLabel);
-        binding.scroll.smoothScrollTo(0, Math.max(0, binding.tvHourlyTitle.getTop()
-                - binding.tvHourlyTitle.getHeight()));
+    /** Tocar un día (en la lista o en una ficha de la tira horaria) abre su detalle. */
+    private void openDay(long dayTime) {
+        startActivity(DayDetailActivity.intent(requireContext(), dayTime));
     }
 
     private void updateHourlyDayLabel() {
@@ -365,33 +355,8 @@ public class HomeFragment extends Fragment {
                         getResources().getStringArray(R.array.uv_levels)[Fmt.uvLevel(f.daily.uvMax[dayIdx])]));
     }
 
-    /** Agrega una fila de dos celdas "LABEL / valor" (mismo patrón visual que la grilla de MyLoc). */
-    private void addCellRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
-        LinearLayout row = new LinearLayout(requireContext());
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (grid.getChildCount() > 0) {
-            rowParams.topMargin = dp(10);
-        }
-        row.setLayoutParams(rowParams);
-        addCell(row, label1, value1, 0, dp(5));
-        addCell(row, label2, value2, dp(5), 0);
-        grid.addView(row);
-    }
-
-    private void addCell(LinearLayout row, int labelRes, String value, int marginStart, int marginEnd) {
-        ItemDataCellBinding cell = ItemDataCellBinding.inflate(getLayoutInflater(), row, false);
-        cell.tvLabel.setText(labelRes);
-        cell.tvValue.setText(value);
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) cell.getRoot().getLayoutParams();
-        lp.setMarginStart(marginStart);
-        lp.setMarginEnd(marginEnd);
-        row.addView(cell.getRoot());
-    }
-
-    private int dp(int value) {
-        return Math.round(value * getResources().getDisplayMetrics().density);
+    private static void addCellRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
+        CellGrid.addRow(grid, label1, value1, label2, value2);
     }
 
     @Override

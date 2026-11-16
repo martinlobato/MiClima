@@ -26,17 +26,22 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 
 - `ui/HomeFragment`: tarjeta actual, tira horaria de 16 días (`HourlyAdapter`, con fichas
   separadoras por día y rótulo del día visible), grilla "Ahora", lista de días con `RangeBarView`
-  (tocar un día lleva la tira horaria a ese día) y tarjeta de sol.
+  (tocar un día, o una ficha de día en la tira, abre su detalle) y tarjeta de sol.
+- `ui/DayDetailActivity`: detalle de un día sobre la caché (sin red). Resumen, chips de variable
+  (temperatura, lluvia, viento, UV, humedad, presión), gráfico `HourlyChartView` (Canvas propio:
+  línea con área o barras, serie secundaria punteada, selección al tocar/arrastrar; la escala
+  sale de `util/ChartScale`) y tabla hora por hora de 12 columnas con la hora fija a la izquierda.
+  Flechas para pasar al día anterior/siguiente.
 - `ui/SettingsFragment`: modo y paleta.
 
 ## Tests
 
 `./gradlew testDebugUnitTest` — parser y formateo en JVM, más `HomeScreenTest` (Robolectric) que
-abre Inicio con una caché sintética y guarda capturas en `app/build/screenshots/`.
+abre Inicio con una caché sintética y `DayDetailTest` que abre el detalle de día; ambos guardan
+capturas en `app/build/screenshots/`. Los datos sintéticos están en `TestData`.
 
 ## Pendiente (plan por fases)
 
-2. Detalle de día con gráficos por variable y tabla horaria completa.
 3. Lugares (búsqueda con la API de geocoding de Open-Meteo, guardados) y unidades en Ajustes.
 4. Calidad del aire, widget y actualización en segundo plano.
 5. Aviso de lluvia próxima, ficha de Play Store.
