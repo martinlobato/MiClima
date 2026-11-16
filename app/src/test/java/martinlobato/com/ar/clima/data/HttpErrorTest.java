@@ -14,8 +14,11 @@ public class HttpErrorTest {
         assertEquals("Daily API request limit exceeded. Please try again tomorrow.", Http.reasonFrom(
                 "{\"reason\":\"Daily API request limit exceeded. Please try again tomorrow.\",\"error\":true}"));
         assertNull(Http.reasonFrom(""));
-        assertNull(Http.reasonFrom("<html>Bad Gateway</html>"));
-        assertNull(Http.reasonFrom("{\"error\":true}"));
+        assertNull(Http.reasonFrom("   "));
+        // Respuesta que no es de Open-Meteo (página de un filtro): se muestra su texto.
+        assertEquals("403 Forbidden Access denied", Http.reasonFrom(
+                "<html><head><style>b{color:red}</style></head><body><h1>403 Forbidden</h1>\n<p>Access denied</p></body></html>"));
+        assertEquals("{\"error\":true}", Http.reasonFrom("{\"error\":true}"));
     }
 
     @Test

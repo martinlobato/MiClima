@@ -23,9 +23,15 @@ final class Http {
             conn.setConnectTimeout(10_000);
             conn.setReadTimeout(20_000);
             conn.setRequestProperty("Accept", "application/json");
+            // Identificación genérica de la app (sin datos del usuario ni del dispositivo): algunos
+            // filtros rechazan el User-Agent por defecto de Android.
+            conn.setRequestProperty("User-Agent", "MiClima/0.1 (Android)");
             int status = conn.getResponseCode();
             if (status != HttpURLConnection.HTTP_OK) {
-                throw new ApiException(status, reasonFrom(readAll(conn.getErrorStream(), 4096)));
+                String server = conn.getHeaderField("Server");
+                String reason = reasonFrom(readAll(conn.getErrorStream(), 4096));
+                throw new ApiException(status, reason == null && server != null
+                        ? "servidor " + server : reason);
             }
             try (InputStream in = conn.getInputStream()) {
                 return readAll(in, Integer.MAX_VALUE);
@@ -46,14 +52,21 @@ final class Http {
         return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
-    /** Open-Meteo informa los errores como {"error":true,"reason":"..."}; null si no viene así. */
+    /**
+     * Motivo del error: el campo "reason" de Open-Meteo, o si la respuesta no es de Open-Meteo
+     * (por ejemplo la página de un filtro de red), el comienzo de su texto. Null si está vacía.
+     */
     static String reasonFrom(String body) {
-        if (body == null || body.isEmpty()) return null;
+        if (body == null || body.trim().isEmpty()) return null;
         try {
             String reason = new org.json.JSONObject(body).optString("reason", "");
-            return reason.isEmpty() ? null : reason;
+            if (!reason.isEmpty()) return reason;
         } catch (org.json.JSONException e) {
-            return null;
+            // No es JSON: se muestra el texto.
         }
+        String text = body.replaceAll("(?s)<(script|style)[^>]*>.*?</\\1>", " ")
+                .replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+        if (text.isEmpty()) return null;
+        return text.length() > 160 ? text.substring(0, 160) + "…" : text;
     }
 }
