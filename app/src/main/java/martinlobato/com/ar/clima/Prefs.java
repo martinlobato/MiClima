@@ -3,6 +3,7 @@ package martinlobato.com.ar.clima;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import martinlobato.com.ar.clima.data.WeatherModel;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.util.Units;
 
@@ -31,7 +32,28 @@ public final class Prefs {
     private static final String KEY_UNIT_PRESSURE = "unit_pressure";
     private static final String KEY_UNIT_PRECIP = "unit_precip";
 
+    private static final String KEY_MODEL = "weather_model";
+    private static final String KEY_REFRESH_HOURS = "refresh_hours";
+
     private Prefs() {
+    }
+
+    /** Modelo meteorológico elegido; por defecto, el automático de Open-Meteo. */
+    public static WeatherModel getModel(Context context) {
+        return WeatherModel.parse(prefs(context).getString(KEY_MODEL, null));
+    }
+
+    public static void setModel(Context context, WeatherModel model) {
+        prefs(context).edit().putString(KEY_MODEL, model.name()).apply();
+    }
+
+    /** Cada cuántas horas se actualiza en segundo plano; 0 = nunca. Por defecto, 3. */
+    public static int getRefreshHours(Context context) {
+        return prefs(context).getInt(KEY_REFRESH_HOURS, 3);
+    }
+
+    public static void setRefreshHours(Context context, int hours) {
+        prefs(context).edit().putInt(KEY_REFRESH_HOURS, hours).apply();
     }
 
     /** Unidades elegidas (por defecto métricas: °C, km/h, hPa, mm). */

@@ -19,18 +19,34 @@ public final class WeatherApi {
             + "sunset,uv_index_max,precipitation_sum,precipitation_probability_max,"
             + "wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant";
 
+    private static final String AIR_BASE = "https://air-quality-api.open-meteo.com/v1/air-quality";
+    private static final String AIR_CURRENT = "us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide";
+    private static final String AIR_HOURLY = "us_aqi,pm2_5,pm10,ozone";
+
     private WeatherApi() {
     }
 
-    static String forecastUrl(double lat, double lon) {
-        return String.format(Locale.US,
+    static String forecastUrl(double lat, double lon, WeatherModel model) {
+        String url = String.format(Locale.US,
                 "%s?latitude=%.2f&longitude=%.2f&current=%s&hourly=%s&daily=%s"
                         + "&timezone=auto&forecast_days=%d",
                 BASE, lat, lon, CURRENT, HOURLY, DAILY, FORECAST_DAYS);
+        return model.apiId == null ? url : url + "&models=" + model.apiId;
+    }
+
+    static String airQualityUrl(double lat, double lon) {
+        return String.format(Locale.US,
+                "%s?latitude=%.2f&longitude=%.2f&current=%s&hourly=%s&timezone=auto&forecast_days=5",
+                AIR_BASE, lat, lon, AIR_CURRENT, AIR_HOURLY);
     }
 
     /** Devuelve el JSON crudo del pronóstico. Lanza IOException ante error de red o HTTP != 200. */
-    public static String fetchForecast(double lat, double lon) throws IOException {
-        return Http.get(forecastUrl(lat, lon));
+    public static String fetchForecast(double lat, double lon, WeatherModel model) throws IOException {
+        return Http.get(forecastUrl(lat, lon, model));
+    }
+
+    /** Devuelve el JSON crudo de calidad del aire (API aparte de Open-Meteo). */
+    public static String fetchAirQuality(double lat, double lon) throws IOException {
+        return Http.get(airQualityUrl(lat, lon));
     }
 }

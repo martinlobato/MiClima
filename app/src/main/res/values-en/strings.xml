@@ -7,7 +7,6 @@
     <string name="settings_title">Settings</string>
 
     <string name="place_unknown">My location</string>
-    <string name="status_updated">Updated %1$s · Open-Meteo</string>
     <string name="feels_like">Feels like %1$s</string>
     <string name="hi_lo">High %1$s · Low %2$s</string>
     <string name="section_hourly">Hourly · %1$d days</string>
@@ -156,4 +155,45 @@
     <string name="units_wind">Wind</string>
     <string name="units_pressure">Pressure</string>
     <string name="units_precip">Rain and distance</string>
+
+    <string name="status_updated_model">Updated %1$s · %2$s</string>
+    <string name="model_setting_title">Weather model</string>
+    <string name="model_setting_note">Automatic picks the best model for each place. The others may cover fewer days or less data (for example, no UV index); missing values show as “—”.</string>
+    <string-array name="model_names">
+        <item>Automatic (recommended)</item>
+        <item>ECMWF (European)</item>
+        <item>GFS (United States)</item>
+        <item>ICON (Germany)</item>
+        <item>GEM (Canada)</item>
+        <item>Météo-France</item>
+    </string-array>
+    <string name="refresh_setting_title">Background refresh</string>
+    <string-array name="refresh_names">
+        <item>Never</item>
+        <item>Every hour</item>
+        <item>Every 3 hours</item>
+        <item>Every 6 hours</item>
+    </string-array>
+    <string name="section_air">Air quality</string>
+    <string name="air_index_caption">AQI index (US)</string>
+    <string-array name="aqi_levels">
+        <item>Good</item>
+        <item>Moderate</item>
+        <item>Unhealthy for sensitive groups</item>
+        <item>Unhealthy</item>
+        <item>Very unhealthy</item>
+        <item>Hazardous</item>
+    </string-array>
+    <string name="label_pm25">PM2.5</string>
+    <string name="label_pm10">PM10</string>
+    <string name="label_ozone">Ozone</string>
+    <string name="label_no2">NO₂</string>
+    <string name="var_air">Air</string>
+    <string name="info_air_day">Max AQI %1$s · %2$s</string>
+    <string name="info_air_hour">AQI %1$s · %2$s</string>
+    <string name="info_air_none">No air quality data for this day</string>
+    <string name="legend_air">Hourly air quality index (5-day forecast)</string>
+    <string name="widget_name">Mi Clima</string>
+    <string name="widget_description">Current weather and next hours</string>
+    <string name="widget_empty">Open Mi Clima to load the forecast</string>
 </resources>

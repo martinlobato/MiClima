@@ -69,7 +69,7 @@ public class DayDetailTest {
                 assertEquals(12, ((LinearLayout) table.getChildAt(1)).getChildCount());
 
                 ChipGroup chips = a.findViewById(R.id.chipGroupVariable);
-                assertEquals(6, chips.getChildCount());
+                assertEquals(7, chips.getChildCount());
                 assertTrue(text(a, R.id.tvChartInfo), text(a, R.id.tvChartInfo).startsWith("Máx "));
 
                 // Seleccionar una hora en el gráfico muestra su detalle.
@@ -95,6 +95,9 @@ public class DayDetailTest {
                      launch(System.currentTimeMillis(), Prefs.THEME_MODE_DARK, Prefs.PALETTE_GREEN)) {
             scenario.onActivity(a -> {
                 assertEquals("Hoy", text(a, R.id.tvDayTitle));
+                // Hoy sí hay datos de aire.
+                ((Chip) ((ChipGroup) a.findViewById(R.id.chipGroupVariable)).getChildAt(6)).setChecked(true);
+                assertTrue(text(a, R.id.tvChartInfo), text(a, R.id.tvChartInfo).startsWith("AQI máx. "));
                 assertFalse(a.findViewById(R.id.btnPrevDay).isEnabled());
                 assertTrue(a.findViewById(R.id.btnNextDay).isEnabled());
 
@@ -111,7 +114,11 @@ public class DayDetailTest {
                 assertNotEquals(before, text(a, R.id.tvDayDate));
                 assertEquals(25, ((LinearLayout) a.findViewById(R.id.tableScroll)).getChildCount());
 
-                ((Chip) ((ChipGroup) a.findViewById(R.id.chipGroupVariable)).getChildAt(2)).setChecked(true);
+                // Día 16: el pronóstico de aire (5 días) no llega.
+                ChipGroup group = a.findViewById(R.id.chipGroupVariable);
+                ((Chip) group.getChildAt(6)).setChecked(true);
+                assertEquals("Sin datos de calidad del aire para este día", text(a, R.id.tvChartInfo));
+                ((Chip) group.getChildAt(2)).setChecked(true);
             });
             ShadowLooper.idleMainLooper();
             scenario.onActivity(a ->

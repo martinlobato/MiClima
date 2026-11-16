@@ -8,7 +8,6 @@
 
     <!-- Inicio -->
     <string name="place_unknown">Mi ubicación</string>
-    <string name="status_updated">Actualizado %1$s · Open-Meteo</string>
     <string name="feels_like">Sensación %1$s</string>
     <string name="hi_lo">Máx %1$s · Mín %2$s</string>
     <string name="section_hourly">Por hora · %1$d días</string>
@@ -168,4 +167,47 @@
     <string name="units_wind">Viento</string>
     <string name="units_pressure">Presión</string>
     <string name="units_precip">Lluvia y distancia</string>
+
+    <!-- Modelo, actualización, aire y widget -->
+    <string name="status_updated_model">Actualizado %1$s · %2$s</string>
+    <string name="model_setting_title">Modelo meteorológico</string>
+    <string name="model_setting_note">Automático elige el mejor modelo para cada lugar. Los demás pueden traer menos días o menos datos (por ejemplo, sin índice UV); lo que falte se muestra como «—».</string>
+    <string-array name="model_names">
+        <item>Automático (recomendado)</item>
+        <item>ECMWF (europeo)</item>
+        <item>GFS (Estados Unidos)</item>
+        <item>ICON (Alemania)</item>
+        <item>GEM (Canadá)</item>
+        <item>Météo-France</item>
+    </string-array>
+    <string name="refresh_setting_title">Actualización en segundo plano</string>
+    <string-array name="refresh_names">
+        <item>Nunca</item>
+        <item>Cada hora</item>
+        <item>Cada 3 horas</item>
+        <item>Cada 6 horas</item>
+    </string-array>
+    <string name="section_air">Calidad del aire</string>
+    <string name="air_index_caption">Índice AQI (EE. UU.)</string>
+    <string-array name="aqi_levels">
+        <item>Buena</item>
+        <item>Moderada</item>
+        <item>Dañina para grupos sensibles</item>
+        <item>Dañina</item>
+        <item>Muy dañina</item>
+        <item>Peligrosa</item>
+    </string-array>
+    <string name="label_pm25">PM2.5</string>
+    <string name="label_pm10">PM10</string>
+    <string name="label_ozone">Ozono</string>
+    <string name="label_no2">NO₂</string>
+    <string name="fmt_ugm3" translatable="false">%1$s µg/m³</string>
+    <string name="var_air">Aire</string>
+    <string name="info_air_day">AQI máx. %1$s · %2$s</string>
+    <string name="info_air_hour">AQI %1$s · %2$s</string>
+    <string name="info_air_none">Sin datos de calidad del aire para este día</string>
+    <string name="legend_air">Índice de calidad del aire por hora (pronóstico de 5 días)</string>
+    <string name="widget_name">Mi Clima</string>
+    <string name="widget_description">Clima actual y próximas horas</string>
+    <string name="widget_empty">Abrí Mi Clima para cargar el pronóstico</string>
 </resources>

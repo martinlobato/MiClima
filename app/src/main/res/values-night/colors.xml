@@ -49,4 +49,9 @@
 
     <color name="danger">#f2716a</color>
     <color name="on_danger">#ffffff</color>
+
+    <!-- Widget: sigue el modo claro/oscuro del sistema (se dibuja fuera de la app). -->
+    <color name="widget_bg">#171c23</color>
+    <color name="widget_text">#e4e8ed</color>
+    <color name="widget_text_secondary">#9da6ae</color>
 </resources>

@@ -46,23 +46,49 @@ public final class WeatherRepository {
             JSONObject wrapper = new JSONObject(new String(data, 0, read, StandardCharsets.UTF_8));
             Forecast f = ForecastParser.parse(wrapper.getString("raw"), wrapper.getLong("fetchedAt"));
             f.place = wrapper.isNull("place") ? null : wrapper.optString("place", null);
+            f.model = WeatherModel.parse(wrapper.optString("model", null));
+            f.air = parseAir(wrapper.isNull("air") ? null : wrapper.optString("air", null));
             return f;
         } catch (IOException | JSONException e) {
             return null;
         }
     }
 
-    /** Baja el pronóstico (bloqueante), lo guarda en caché y lo devuelve. */
+    private static AirQuality parseAir(String raw) {
+        if (raw == null || raw.isEmpty()) return null;
+        try {
+            return AirQuality.parse(raw);
+        } catch (JSONException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Baja el pronóstico (bloqueante) con el modelo elegido en Ajustes, lo guarda en caché y lo
+     * devuelve. La calidad del aire se pide aparte y es opcional: si falla, el pronóstico sigue.
+     */
     public static Forecast fetch(Context context, String key, double lat, double lon, String place)
             throws IOException, JSONException {
-        String raw = WeatherApi.fetchForecast(lat, lon);
+        WeatherModel model = Prefs.getModel(context);
+        String raw = WeatherApi.fetchForecast(lat, lon, model);
         long now = System.currentTimeMillis();
         Forecast f = ForecastParser.parse(raw, now);
         f.place = place;
+        f.model = model;
+
+        String airRaw = null;
+        try {
+            airRaw = WeatherApi.fetchAirQuality(lat, lon);
+            f.air = AirQuality.parse(airRaw);
+        } catch (IOException | JSONException e) {
+            airRaw = null;
+        }
 
         JSONObject wrapper = new JSONObject();
         wrapper.put("fetchedAt", now);
         wrapper.put("place", place == null ? JSONObject.NULL : place);
+        wrapper.put("model", model.name());
+        wrapper.put("air", airRaw == null ? JSONObject.NULL : airRaw);
         wrapper.put("raw", raw);
         File dest = cacheFile(context, key);
         File tmp = new File(dest.getPath() + ".tmp");
@@ -77,6 +103,22 @@ public final class WeatherRepository {
             Prefs.setLastPlace(context, lat, lon, place);
         }
         return f;
+    }
+
+    /**
+     * Actualiza el lugar seleccionado sin leer la ubicación (para segundo plano): un lugar
+     * guardado usa sus coordenadas; la ubicación actual, las últimas conocidas.
+     *
+     * @return el pronóstico nuevo, o null si todavía no hay ningún lugar que actualizar
+     */
+    public static Forecast refreshSelected(Context context) throws IOException, JSONException {
+        Place place = PlaceStore.selected(context);
+        if (place != null) {
+            return fetch(context, place.cacheKey(), place.latitude, place.longitude, place.name);
+        }
+        if (!Prefs.hasLastPlace(context)) return null;
+        return fetch(context, KEY_CURRENT_LOCATION, Prefs.getLastLat(context), Prefs.getLastLon(context),
+                Prefs.getLastPlace(context));
     }
 
     public static void deleteCache(Context context, String key) {

@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -76,7 +77,53 @@ public final class ForecastParser {
             f.current.windDir = c.optDouble("wind_direction_10m", Double.NaN);
             f.current.gusts = c.optDouble("wind_gusts_10m", Double.NaN);
         }
+        trimTrailingGaps(f);
         return f;
+    }
+
+    /**
+     * Algunos modelos cubren menos de 16 días: la API igual devuelve todas las fechas, con null
+     * al final. Se recortan esas horas y días vacíos para no mostrar filas de "—".
+     */
+    private static void trimTrailingGaps(Forecast f) {
+        Forecast.Hourly h = f.hourly;
+        int hours = h.size();
+        while (hours > 0 && Double.isNaN(h.temp[hours - 1])) hours--;
+        if (hours > 0 && hours < h.size()) {
+            h.time = Arrays.copyOf(h.time, hours);
+            h.isDay = Arrays.copyOf(h.isDay, hours);
+            h.temp = Arrays.copyOf(h.temp, hours);
+            h.apparent = Arrays.copyOf(h.apparent, hours);
+            h.humidity = Arrays.copyOf(h.humidity, hours);
+            h.dewPoint = Arrays.copyOf(h.dewPoint, hours);
+            h.precipProb = Arrays.copyOf(h.precipProb, hours);
+            h.precip = Arrays.copyOf(h.precip, hours);
+            h.code = Arrays.copyOf(h.code, hours);
+            h.pressure = Arrays.copyOf(h.pressure, hours);
+            h.cloud = Arrays.copyOf(h.cloud, hours);
+            h.visibility = Arrays.copyOf(h.visibility, hours);
+            h.wind = Arrays.copyOf(h.wind, hours);
+            h.windDir = Arrays.copyOf(h.windDir, hours);
+            h.gusts = Arrays.copyOf(h.gusts, hours);
+            h.uv = Arrays.copyOf(h.uv, hours);
+        }
+        Forecast.Daily d = f.daily;
+        int days = d.size();
+        while (days > 0 && Double.isNaN(d.tempMax[days - 1]) && Double.isNaN(d.tempMin[days - 1])) days--;
+        if (days > 0 && days < d.size()) {
+            d.time = Arrays.copyOf(d.time, days);
+            d.sunrise = Arrays.copyOf(d.sunrise, days);
+            d.sunset = Arrays.copyOf(d.sunset, days);
+            d.code = Arrays.copyOf(d.code, days);
+            d.tempMax = Arrays.copyOf(d.tempMax, days);
+            d.tempMin = Arrays.copyOf(d.tempMin, days);
+            d.uvMax = Arrays.copyOf(d.uvMax, days);
+            d.precipSum = Arrays.copyOf(d.precipSum, days);
+            d.precipProbMax = Arrays.copyOf(d.precipProbMax, days);
+            d.windMax = Arrays.copyOf(d.windMax, days);
+            d.gustsMax = Arrays.copyOf(d.gustsMax, days);
+            d.windDirDominant = Arrays.copyOf(d.windDirDominant, days);
+        }
     }
 
     private static double[] nums(JSONObject parent, String key, int size) {

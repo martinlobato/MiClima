@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Para el clima alcanza con la ubicación aproximada (la grilla del modelo es de km). -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -28,6 +29,31 @@
             android:name=".ui.DayDetailActivity"
             android:exported="false"
             android:parentActivityName=".MainActivity" />
+
+        <receiver
+            android:name=".widget.WeatherWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_weather_info" />
+        </receiver>
+
+        <!-- WorkManager se inicializa a demanda con la configuración de MiClimaApp
+             (Configuration.Provider), así que se quita su inicializador automático. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
 
     </application>
 

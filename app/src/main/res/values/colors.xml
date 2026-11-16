@@ -74,4 +74,9 @@
     <!-- Violeta representativo del swatch "Automático" en el selector de paleta (no es un
          tema real, Automático sigue disparando Material You dinámico). -->
     <color name="auto_palette_swatch">#6750A4</color>
+
+    <!-- Widget: sigue el modo claro/oscuro del sistema (se dibuja fuera de la app). -->
+    <color name="widget_bg">#f8fafd</color>
+    <color name="widget_text">#141b24</color>
+    <color name="widget_text_secondary">#535c66</color>
 </resources>

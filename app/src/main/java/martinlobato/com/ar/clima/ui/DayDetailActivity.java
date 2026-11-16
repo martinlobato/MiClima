@@ -61,7 +61,8 @@ public class DayDetailActivity extends AppCompatActivity {
         WIND(R.string.var_wind),
         UV(R.string.var_uv),
         HUMIDITY(R.string.var_humidity),
-        PRESSURE(R.string.var_pressure);
+        PRESSURE(R.string.var_pressure),
+        AIR(R.string.var_air);
 
         final int labelRes;
 
@@ -279,6 +280,19 @@ public class DayDetailActivity extends AppCompatActivity {
         return out;
     }
 
+    /** AQI de cada hora del día (NaN donde el pronóstico de aire, de ~5 días, no llega). */
+    private double[] airSeries() {
+        double[] out = new double[hours.length];
+        for (int i = 0; i < hours.length; i++) {
+            out[i] = forecast.air == null ? Double.NaN : forecast.air.aqiAt(forecast.hourly.time[hours[i]]);
+        }
+        return out;
+    }
+
+    private String aqiLevel(double aqi) {
+        return getResources().getStringArray(R.array.aqi_levels)[Fmt.aqiLevel(aqi)];
+    }
+
     private void renderChart() {
         if (forecast == null) return;
         Forecast.Hourly h = forecast.hourly;
@@ -326,6 +340,13 @@ public class DayDetailActivity extends AppCompatActivity {
                 scale = ChartScale.fixed(0, 100, 25);
                 axis = UnitFormat::percent;
                 break;
+            case AIR:
+                values = airSeries();
+                bars = true;
+                scale = ChartScale.of(0, hi(100, max(values)), 4);
+                axis = Fmt::round;
+                legendRes = R.string.legend_air;
+                break;
             case PRESSURE:
                 values = convert(series(h.pressure), uf::pressureValue);
                 scale = ChartScale.of(min(values), max(values), 4);
@@ -361,6 +382,12 @@ public class DayDetailActivity extends AppCompatActivity {
                 case WIND:
                     text = getString(R.string.info_wind_day, kmh(max(series(h.wind))), kmh(max(series(h.gusts))));
                     break;
+                case AIR: {
+                    double worst = max(airSeries());
+                    text = Double.isNaN(worst) ? getString(R.string.info_air_none)
+                            : getString(R.string.info_air_day, Fmt.round(worst), aqiLevel(worst));
+                    break;
+                }
                 case UV:
                     text = getString(R.string.info_uv_day, uvText(max(series(h.uv))));
                     break;
@@ -389,6 +416,12 @@ public class DayDetailActivity extends AppCompatActivity {
                     text = getString(R.string.fmt_info3, hour, windText(h.wind[i], h.windDir[i]),
                             getString(R.string.info_gusts, kmh(h.gusts[i])));
                     break;
+                case AIR: {
+                    double aqi = airSeries()[selected];
+                    text = getString(R.string.fmt_info, hour, Double.isNaN(aqi) ? Fmt.DASH
+                            : getString(R.string.info_air_hour, Fmt.round(aqi), aqiLevel(aqi)));
+                    break;
+                }
                 case UV:
                     text = getString(R.string.fmt_info, hour, uvText(h.uv[i]));
                     break;

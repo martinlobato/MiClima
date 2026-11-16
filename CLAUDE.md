@@ -26,6 +26,18 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - Unidades: la API siempre se consulta en métrico; `util/Units` convierte y `util/UnitFormat`
   formatea según lo elegido en Ajustes (`Prefs.units`). Nunca formatear valores con unidad a mano:
   pasar siempre por `UnitFormat`. La unidad de lluvia define también la de distancia (mm→km, in→mi).
+- Modelo meteorológico: `data/WeatherModel` (Automático, ECMWF, GFS, ICON, GEM, Météo-France) se
+  elige en Ajustes y viaja como parámetro `models`. La caché guarda con qué modelo se bajó; si no
+  coincide con el elegido, Inicio vuelve a bajar. Los modelos no automáticos pueden traer menos
+  días o variables: `ForecastParser` recorta la cola vacía y lo que falta se muestra como "—".
+  Solo `ecmwf_ifs025` se verificó contra la API; los otros ids están tomados de la documentación.
+- Calidad del aire: `data/AirQuality` (API aparte, `air-quality-api.open-meteo.com`, AQI de
+  EE. UU. y PM2.5/PM10/ozono/NO₂, ~5 días). Se pide junto con el pronóstico y es opcional: si
+  falla, el pronóstico se guarda igual. Va dentro del mismo archivo de caché.
+- Segundo plano: `work/RefreshWorker` (WorkManager, inicialización a demanda vía
+  `MiClimaApp implements Configuration.Provider`) actualiza el lugar seleccionado cada N horas
+  (`Prefs.getRefreshHours`, 0 = nunca) con `WeatherRepository.refreshSelected`, que no lee la
+  ubicación: para "ubicación actual" usa las últimas coordenadas conocidas.
 - Ubicación: solo `ACCESS_COARSE_LOCATION` (`util/LocationHelper`, Fused con fallback al
   LocationManager). Sin permiso se usa el último lugar guardado.
 
@@ -42,7 +54,14 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - `ui/PlacesFragment` (pestaña Lugares): búsqueda con demora de 500 ms, resultados para agregar,
   lista de guardados con la temperatura tomada de la caché, selección (vuelve a Inicio) y quitar
   con deshacer.
-- `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo y paleta.
+- `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo, paleta,
+  modelo meteorológico y frecuencia de actualización en segundo plano.
+- `widget/WeatherWidgetProvider`: widget 4×2 con el clima actual y 5 casillas cada 3 horas del
+  lugar seleccionado. Se dibuja siempre desde la caché (`buildViews`); Inicio, Lugares, Ajustes
+  y el worker llaman a `requestUpdate`/`updateAll` cuando cambia algo. Sigue el modo claro/oscuro
+  del sistema, no el de la app.
+- Inicio muestra además la tarjeta de calidad del aire (`AqiBarView`) y el detalle de día tiene el
+  chip "Aire".
 
 ## Tests
 
@@ -52,8 +71,4 @@ abre Inicio con una caché sintética, `DayDetailTest` (detalle de día) y `Plac
 
 ## Pendiente (plan por fases)
 
-4. Calidad del aire, widget y actualización en segundo plano.
 5. Aviso de lluvia próxima, ficha de Play Store.
-
-Pendiente de decidir: selector de modelo meteorológico en Ajustes (parámetro `models` de
-Open-Meteo: ECMWF, GFS, ICON…) como forma de hacer configurable el origen de los datos.

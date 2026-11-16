@@ -141,8 +141,43 @@ final class TestData {
         wrapper.put("fetchedAt", System.currentTimeMillis());
         wrapper.put("place", placeName);
         wrapper.put("raw", root.toString());
+        wrapper.put("model", "AUTO");
+        wrapper.put("air", airJson(tz, hourFmt));
         try (FileOutputStream out = new FileOutputStream(new File(ctx.getFilesDir(), "gps".equals(key) ? "forecast_cache.json" : "forecast_" + key + ".json"))) {
             out.write(wrapper.toString().getBytes(StandardCharsets.UTF_8));
         }
+    }
+
+    /** Calidad del aire sintética: 5 días por hora, con AQI entre 40 y 135. */
+    private static String airJson(TimeZone tz, SimpleDateFormat hourFmt) throws Exception {
+        Calendar cal = Calendar.getInstance(tz);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        JSONObject hourly = new JSONObject();
+        String[] keys = {"time", "us_aqi", "pm2_5", "pm10", "ozone"};
+        for (String k : keys) hourly.put(k, new JSONArray());
+        for (int i = 0; i < 5 * 24; i++) {
+            hourly.getJSONArray("time").put(hourFmt.format(cal.getTime()));
+            hourly.getJSONArray("us_aqi").put(40 + (i * 7) % 96);
+            hourly.getJSONArray("pm2_5").put(17.2);
+            hourly.getJSONArray("pm10").put(23.6);
+            hourly.getJSONArray("ozone").put(55.0);
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+        }
+        JSONObject current = new JSONObject();
+        current.put("time", hourFmt.format(new Date()));
+        current.put("us_aqi", 64);
+        current.put("pm2_5", 17.0);
+        current.put("pm10", 21.5);
+        current.put("ozone", 55.0);
+        current.put("nitrogen_dioxide", 21.4);
+        JSONObject root = new JSONObject();
+        root.put("timezone", TZ);
+        root.put("utc_offset_seconds", tz.getOffset(System.currentTimeMillis()) / 1000);
+        root.put("current", current);
+        root.put("hourly", hourly);
+        return root.toString();
     }
 }

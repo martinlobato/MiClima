@@ -19,6 +19,10 @@ public final class Forecast {
     public long fetchedAt;
     /** Nombre del lugar para mostrar; puede ser null. */
     public String place;
+    /** Modelo con el que se pidió este pronóstico. */
+    public WeatherModel model = WeatherModel.AUTO;
+    /** Calidad del aire; null si no se pudo obtener. */
+    public AirQuality air;
 
     public final Current current = new Current();
     public final Hourly hourly = new Hourly();

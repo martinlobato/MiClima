@@ -13,14 +13,18 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
+import martinlobato.com.ar.clima.data.WeatherModel;
 import martinlobato.com.ar.clima.databinding.FragmentSettingsBinding;
 import martinlobato.com.ar.clima.databinding.ItemPaletteSwatchBinding;
 import martinlobato.com.ar.clima.util.ThemeUtils;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.util.Units;
+import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
+import martinlobato.com.ar.clima.work.RefreshScheduler;
 
 /** Ajustes: unidades de medida y tema visual (modo + paleta, mismo sistema que MyLoc/Ubica). */
 public class SettingsFragment extends Fragment {
@@ -41,8 +45,50 @@ public class SettingsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         appCtx = requireContext().getApplicationContext();
         setupUnits();
+        setupData();
         setupThemeMode();
         setupThemePalette();
+    }
+
+    /** Horas entre actualizaciones en segundo plano, en el orden de R.array.refresh_names. */
+    private static final int[] REFRESH_HOURS = {0, 1, 3, 6};
+
+    /** Datos: modelo meteorológico y frecuencia de actualización en segundo plano. */
+    private void setupData() {
+        final String[] modelNames = getResources().getStringArray(R.array.model_names);
+        final String[] refreshNames = getResources().getStringArray(R.array.refresh_names);
+        binding.tvModelValue.setText(modelNames[Prefs.getModel(appCtx).ordinal()]);
+        binding.tvRefreshValue.setText(refreshNames[refreshIndex()]);
+
+        binding.rowModel.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.model_setting_title)
+                .setSingleChoiceItems(modelNames, Prefs.getModel(appCtx).ordinal(), (dialog, which) -> {
+                    // El cambio se aplica la próxima vez que se abra Inicio (vuelve a bajar los datos).
+                    Prefs.setModel(appCtx, WeatherModel.values()[which]);
+                    if (binding != null) binding.tvModelValue.setText(modelNames[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+
+        binding.rowRefresh.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.refresh_setting_title)
+                .setSingleChoiceItems(refreshNames, refreshIndex(), (dialog, which) -> {
+                    Prefs.setRefreshHours(appCtx, REFRESH_HOURS[which]);
+                    RefreshScheduler.apply(appCtx);
+                    if (binding != null) binding.tvRefreshValue.setText(refreshNames[which]);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+    }
+
+    private int refreshIndex() {
+        int hours = Prefs.getRefreshHours(appCtx);
+        for (int i = 0; i < REFRESH_HOURS.length; i++) {
+            if (REFRESH_HOURS[i] == hours) return i;
+        }
+        return 2;
     }
 
     /** Unidades: cada grupo guarda su elección; Inicio y el detalle la leen al abrirse. */
@@ -73,6 +119,7 @@ public class SettingsFragment extends Fragment {
                 Units.Pressure.values()[indexOf(binding.toggleUnitPressure,
                         R.id.btnPressureHpa, R.id.btnPressureMmhg, R.id.btnPressureInhg)],
                 Units.Precip.values()[indexOf(binding.toggleUnitPrecip, R.id.btnPrecipMm, R.id.btnPrecipIn)]));
+        WeatherWidgetProvider.requestUpdate(appCtx);
     }
 
     private static int indexOf(MaterialButtonToggleGroup group, int... buttonIds) {

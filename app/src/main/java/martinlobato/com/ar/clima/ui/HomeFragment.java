@@ -27,6 +27,7 @@ import java.util.Locale;
 import martinlobato.com.ar.clima.MainActivity;
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
+import martinlobato.com.ar.clima.data.AirQuality;
 import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.Place;
 import martinlobato.com.ar.clima.data.PlaceStore;
@@ -39,6 +40,7 @@ import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.Fmt;
 import martinlobato.com.ar.clima.util.LocationHelper;
 import martinlobato.com.ar.clima.util.UnitFormat;
+import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
 /**
  * Inicio: condiciones actuales, pronóstico hora por hora de los 16 días, detalle de ahora,
@@ -97,7 +99,9 @@ public class HomeFragment extends Fragment {
                 forecast = cached;
                 render();
             }
-            if (forecast == null || System.currentTimeMillis() - forecast.fetchedAt > STALE_MS) {
+            // También se actualiza si en Ajustes se eligió otro modelo que el de la caché.
+            if (forecast == null || System.currentTimeMillis() - forecast.fetchedAt > STALE_MS
+                    || forecast.model != Prefs.getModel(appCtx)) {
                 refresh();
             }
         });
@@ -180,6 +184,7 @@ public class HomeFragment extends Fragment {
             if (result != null) {
                 forecast = result;
                 render();
+                WeatherWidgetProvider.requestUpdate(appCtx);
             } else if (forecast != null) {
                 Toast.makeText(appCtx, R.string.error_refresh, Toast.LENGTH_LONG).show();
             } else {
@@ -247,9 +252,10 @@ public class HomeFragment extends Fragment {
         double cloud = currentIsFresh ? c.cloud : h.cloud[hourIdx];
 
         binding.tvPlace.setText(f.place != null ? f.place : getString(R.string.place_unknown));
-        binding.tvStatus.setText(getString(R.string.status_updated, DateUtils.getRelativeTimeSpanString(
+        String ago = DateUtils.getRelativeTimeSpanString(
                 f.fetchedAt, now, DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE)
-                .toString().toLowerCase(Locale.getDefault())));
+                .toString().toLowerCase(Locale.getDefault());
+        binding.tvStatus.setText(getString(R.string.status_updated_model, ago, f.model.label));
         binding.ivCurrentIcon.setImageResource(WeatherCode.icon(code, isDay));
         binding.tvCurrentTemp.setText(uf.temp(temp));
         binding.tvCondition.setText(WeatherCode.description(code));
@@ -284,8 +290,51 @@ public class HomeFragment extends Fragment {
                 R.string.label_cloud_cover, UnitFormat.percent(cloud),
                 R.string.label_precip_today, uf.precip(d.precipSum[dayIdx]));
 
+        renderAir(f, now);
         renderDaily(f, dayIdx);
         renderSun(f, dayIdx);
+    }
+
+    /** Tarjeta de calidad del aire; se oculta si no hay datos para este momento. */
+    private void renderAir(Forecast f, long now) {
+        AirQuality air = f.air;
+        double aqi = Double.NaN;
+        double pm25 = Double.NaN;
+        double pm10 = Double.NaN;
+        double ozone = Double.NaN;
+        double no2 = Double.NaN;
+        if (air != null) {
+            if (air.currentTime > 0 && Math.abs(now - air.currentTime) < 2 * DateUtils.HOUR_IN_MILLIS) {
+                aqi = air.currentAqi;
+                pm25 = air.currentPm25;
+                pm10 = air.currentPm10;
+                ozone = air.currentOzone;
+                no2 = air.currentNo2;
+            } else if (air.size() > 0 && now < air.time[air.size() - 1] + DateUtils.HOUR_IN_MILLIS) {
+                // Caché de otra hora: se toma la hora en curso de la serie horaria.
+                int i = 0;
+                for (int k = 0; k < air.size() && air.time[k] <= now; k++) i = k;
+                aqi = air.aqi[i];
+                pm25 = air.pm25[i];
+                pm10 = air.pm10[i];
+                ozone = air.ozone[i];
+            }
+        }
+        if (Double.isNaN(aqi)) {
+            binding.sectionAir.setVisibility(View.GONE);
+            return;
+        }
+        binding.sectionAir.setVisibility(View.VISIBLE);
+        binding.tvAqi.setText(Fmt.round(aqi));
+        binding.tvAqiLevel.setText(getResources().getStringArray(R.array.aqi_levels)[Fmt.aqiLevel(aqi)]);
+        binding.aqiBar.setAqi(aqi);
+        binding.gridAir.removeAllViews();
+        addCellRow(binding.gridAir, R.string.label_pm25, ugm3(pm25), R.string.label_pm10, ugm3(pm10));
+        addCellRow(binding.gridAir, R.string.label_ozone, ugm3(ozone), R.string.label_no2, ugm3(no2));
+    }
+
+    private String ugm3(double value) {
+        return Double.isNaN(value) ? Fmt.DASH : getString(R.string.fmt_ugm3, Fmt.round(value));
     }
 
     private void renderDaily(final Forecast f, int todayIdx) {

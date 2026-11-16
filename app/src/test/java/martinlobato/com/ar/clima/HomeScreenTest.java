@@ -71,6 +71,12 @@ public class HomeScreenTest {
 
                 assertEquals(TestData.DAYS, ((LinearLayout) a.findViewById(R.id.listDaily)).getChildCount());
                 assertEquals(5, ((LinearLayout) a.findViewById(R.id.gridDetails)).getChildCount());
+                // Calidad del aire de la caché: AQI 64 = moderada.
+                assertEquals(View.VISIBLE, a.findViewById(R.id.sectionAir).getVisibility());
+                assertEquals("64", ((TextView) a.findViewById(R.id.tvAqi)).getText().toString());
+                assertEquals("Moderada", ((TextView) a.findViewById(R.id.tvAqiLevel)).getText().toString());
+                String status = ((TextView) a.findViewById(R.id.tvStatus)).getText().toString();
+                assertTrue(status, status.endsWith("· Open-Meteo"));
                 String temp = ((TextView) a.findViewById(R.id.tvCurrentTemp)).getText().toString();
                 assertTrue(temp, temp.matches("-?\\d+°"));
 

@@ -38,6 +38,7 @@ import martinlobato.com.ar.clima.databinding.FragmentPlacesBinding;
 import martinlobato.com.ar.clima.databinding.ItemPlaceBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.UnitFormat;
+import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
 /**
  * Lugares: buscar ciudades (geocoding de Open-Meteo), guardarlas y elegir cuál muestra Inicio.
@@ -244,6 +245,7 @@ public class PlacesFragment extends Fragment {
 
     private void select(@Nullable Place place) {
         PlaceStore.select(appCtx, place);
+        WeatherWidgetProvider.requestUpdate(appCtx);
         hideKeyboard();
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).openHome();
