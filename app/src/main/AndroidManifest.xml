@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Solo para el aviso de lluvia, que se activa desde Ajustes. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".MiClimaApp"
@@ -40,6 +42,30 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_weather_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.CompactWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name_compact">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_compact_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.LockWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_name_lock">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_lock_info" />
         </receiver>
 
         <!-- WorkManager se inicializa a demanda con la configuración de MiClimaApp

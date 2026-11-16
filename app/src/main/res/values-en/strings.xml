@@ -201,4 +201,18 @@
     <string name="error_service">The service answered with an error: %1$s</string>
     <string name="error_no_connection">Couldn\'t connect to Open-Meteo.</string>
     <string name="error_detail">Details: %1$s</string>
+
+    <string name="rain_alert_switch">Upcoming rain alert</string>
+    <string name="rain_alert_desc">Notifies you when rain is expected within the next 6 hours at the selected place. Needs background refresh turned on.</string>
+    <string name="rain_alert_channel">Rain alert</string>
+    <string name="rain_alert_title">Rain around %1$s</string>
+    <string name="rain_alert_text">%1$s chance in %2$s</string>
+    <string name="rain_alert_text_amount">%1$s expected in %2$s</string>
+    <string name="rain_alert_blocked">Mi Clima notifications are blocked. Turn them on in your phone settings.</string>
+
+    <string name="widget_name_compact">Mi Clima compact</string>
+    <string name="widget_description_compact">Current temperature, high and low</string>
+    <string name="widget_name_lock">Mi Clima transparent</string>
+    <string name="widget_description_lock">No background, for the lock screen or over your wallpaper</string>
+    <string name="widget_rain">Rain %1$s</string>
 </resources>

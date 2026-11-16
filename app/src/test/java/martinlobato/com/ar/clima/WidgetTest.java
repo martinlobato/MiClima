@@ -37,11 +37,15 @@ public class WidgetTest {
     }
 
     private View inflate(RemoteViews views) {
+        return inflate(views, 330, 150);
+    }
+
+    private View inflate(RemoteViews views, int widthDp, int heightDp) {
         FrameLayout parent = new FrameLayout(ctx);
         View view = views.apply(ctx, parent);
         float d = ctx.getResources().getDisplayMetrics().density;
-        int w = View.MeasureSpec.makeMeasureSpec(Math.round(330 * d), View.MeasureSpec.EXACTLY);
-        int h = View.MeasureSpec.makeMeasureSpec(Math.round(150 * d), View.MeasureSpec.EXACTLY);
+        int w = View.MeasureSpec.makeMeasureSpec(Math.round(widthDp * d), View.MeasureSpec.EXACTLY);
+        int h = View.MeasureSpec.makeMeasureSpec(Math.round(heightDp * d), View.MeasureSpec.EXACTLY);
         view.measure(w, h);
         view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
         return view;
@@ -50,7 +54,7 @@ public class WidgetTest {
     @Test
     public void showsCurrentWeatherAndNextHours() {
         Forecast f = WeatherRepository.loadCached(ctx, WeatherRepository.KEY_CURRENT_LOCATION);
-        View view = inflate(WeatherWidgetProvider.buildViews(ctx, f, System.currentTimeMillis()));
+        View view = inflate(WeatherWidgetProvider.buildViews(ctx, f, System.currentTimeMillis(), WeatherWidgetProvider.Kind.FULL));
 
         assertEquals(View.VISIBLE, view.findViewById(R.id.widgetContent).getVisibility());
         assertEquals(View.GONE, view.findViewById(R.id.widgetEmpty).getVisibility());
@@ -63,15 +67,40 @@ public class WidgetTest {
     }
 
     @Test
+    public void compactAndTransparentVariants() {
+        Forecast f = WeatherRepository.loadCached(ctx, WeatherRepository.KEY_CURRENT_LOCATION);
+        long now = System.currentTimeMillis();
+
+        View compact = inflate(WeatherWidgetProvider.buildViews(ctx, f, now, WeatherWidgetProvider.Kind.COMPACT), 170, 64);
+        assertEquals("Santiago", text(compact, R.id.widgetPlace));
+        assertTrue(text(compact, R.id.widgetTemp), text(compact, R.id.widgetTemp).matches("-?\\d+°"));
+        assertTrue(text(compact, R.id.widgetHiLo), text(compact, R.id.widgetHiLo).matches("-?\\d+° / -?\\d+°"));
+        TestData.saveScreenshot(compact, "widget-compact");
+
+        View lock = inflate(WeatherWidgetProvider.buildViews(ctx, f, now, WeatherWidgetProvider.Kind.LOCK), 330, 64);
+        assertEquals("Santiago", text(lock, R.id.widgetPlace));
+        // Condición del momento + probabilidad de lluvia del día.
+        assertTrue(text(lock, R.id.widgetCondition), text(lock, R.id.widgetCondition).contains(" · Lluvia "));
+        // Sobre un fondo oscuro, como en la pantalla de bloqueo.
+        FrameLayout wallpaper = new FrameLayout(ctx);
+        wallpaper.setBackgroundColor(0xFF263238);
+        wallpaper.addView(lock);
+        wallpaper.measure(View.MeasureSpec.makeMeasureSpec(lock.getWidth(), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(lock.getHeight(), View.MeasureSpec.EXACTLY));
+        wallpaper.layout(0, 0, lock.getWidth(), lock.getHeight());
+        TestData.saveScreenshot(wallpaper, "widget-lock");
+    }
+
+    @Test
     public void withoutUsableForecastAsksToOpenTheApp() {
-        View empty = inflate(WeatherWidgetProvider.buildViews(ctx, null, System.currentTimeMillis()));
+        View empty = inflate(WeatherWidgetProvider.buildViews(ctx, null, System.currentTimeMillis(), WeatherWidgetProvider.Kind.FULL));
         assertEquals(View.VISIBLE, empty.findViewById(R.id.widgetEmpty).getVisibility());
         assertEquals(View.GONE, empty.findViewById(R.id.widgetContent).getVisibility());
 
         // Una caché que ya no cubre el momento actual tampoco se muestra como si fuera vigente.
         Forecast f = WeatherRepository.loadCached(ctx, WeatherRepository.KEY_CURRENT_LOCATION);
         long farFuture = System.currentTimeMillis() + 40L * 24 * 60 * 60 * 1000;
-        View stale = inflate(WeatherWidgetProvider.buildViews(ctx, f, farFuture));
+        View stale = inflate(WeatherWidgetProvider.buildViews(ctx, f, farFuture, WeatherWidgetProvider.Kind.LOCK));
         assertEquals(View.VISIBLE, stale.findViewById(R.id.widgetEmpty).getVisibility());
     }
 

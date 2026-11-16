@@ -35,7 +35,34 @@ public final class Prefs {
     private static final String KEY_MODEL = "weather_model";
     private static final String KEY_REFRESH_HOURS = "refresh_hours";
 
+    private static final String KEY_RAIN_ALERT = "rain_alert_enabled";
+    private static final String KEY_RAIN_EVENT = "rain_alert_event_time";
+    private static final String KEY_RAIN_NOTIFIED = "rain_alert_notified_at";
+
     private Prefs() {
+    }
+
+    /** Aviso de lluvia próxima; apagado por defecto porque requiere permiso de notificaciones. */
+    public static boolean isRainAlertEnabled(Context context) {
+        return prefs(context).getBoolean(KEY_RAIN_ALERT, false);
+    }
+
+    public static void setRainAlertEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_RAIN_ALERT, enabled).apply();
+    }
+
+    /** Inicio de la última lluvia avisada (epoch millis); 0 si nunca se avisó. */
+    public static long getLastRainEventTime(Context context) {
+        return prefs(context).getLong(KEY_RAIN_EVENT, 0);
+    }
+
+    /** Momento del último aviso de lluvia (epoch millis); 0 si nunca se avisó. */
+    public static long getLastRainNotifiedAt(Context context) {
+        return prefs(context).getLong(KEY_RAIN_NOTIFIED, 0);
+    }
+
+    public static void setLastRainNotification(Context context, long eventTime, long notifiedAt) {
+        prefs(context).edit().putLong(KEY_RAIN_EVENT, eventTime).putLong(KEY_RAIN_NOTIFIED, notifiedAt).apply();
     }
 
     /** Modelo meteorológico elegido; por defecto, el automático de Open-Meteo. */

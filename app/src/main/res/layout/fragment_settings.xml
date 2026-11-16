@@ -412,6 +412,22 @@
 
         </LinearLayout>
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchRainAlert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:text="@string/rain_alert_switch"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rain_alert_desc"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="13sp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -216,4 +216,21 @@
     <string name="error_service">El servicio respondió con un error: %1$s</string>
     <string name="error_no_connection">No se pudo conectar con Open-Meteo.</string>
     <string name="error_detail">Detalle: %1$s</string>
+
+    <!-- Aviso de lluvia -->
+    <string name="rain_alert_switch">Aviso de lluvia próxima</string>
+    <string name="rain_alert_desc">Te avisa con una notificación cuando viene lluvia en las próximas 6 horas en el lugar seleccionado. Necesita la actualización en segundo plano activada.</string>
+    <string name="rain_alert_channel">Aviso de lluvia</string>
+    <string name="rain_alert_title">Lluvia cerca de las %1$s</string>
+    <string name="rain_alert_text">%1$s de probabilidad en %2$s</string>
+    <string name="rain_alert_text_amount">Se esperan %1$s en %2$s</string>
+    <string name="rain_alert_blocked">Las notificaciones de Mi Clima están bloqueadas. Activalas en los ajustes del teléfono.</string>
+
+    <!-- Widgets -->
+    <string name="widget_name_compact">Mi Clima compacto</string>
+    <string name="widget_description_compact">Temperatura actual, máxima y mínima</string>
+    <string name="widget_name_lock">Mi Clima transparente</string>
+    <string name="widget_description_lock">Sin fondo, para la pantalla de bloqueo o sobre el fondo de pantalla</string>
+    <string name="widget_hi_lo_short" translatable="false">%1$s / %2$s</string>
+    <string name="widget_rain">Lluvia %1$s</string>
 </resources>

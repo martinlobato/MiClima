@@ -25,7 +25,7 @@ final class Http {
             conn.setRequestProperty("Accept", "application/json");
             // Identificación genérica de la app (sin datos del usuario ni del dispositivo): algunos
             // filtros rechazan el User-Agent por defecto de Android.
-            conn.setRequestProperty("User-Agent", "MiClima/0.1 (Android)");
+            conn.setRequestProperty("User-Agent", "MiClima/1.0 (Android)");
             int status = conn.getResponseCode();
             if (status != HttpURLConnection.HTTP_OK) {
                 String server = conn.getHeaderField("Server");

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de Privacidad de Mi Clima</title>
+<style>
+  :root { --bg:#f8fafd; --surface:#fdfeff; --ink:#141b24; --soft:#535c66; --line:#ced5dd; --accent:#005fad; --chip:#c4e5ff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b1015; --surface:#171c23; --ink:#e4e8ed; --soft:#9da6ae; --line:#404952; --accent:#7abdff; --chip:#033761; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 Roboto, -apple-system, "Segoe UI", Arial, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:32px 20px 72px; }
+  header { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  header svg { width:44px; height:44px; border-radius:12px; flex:none; }
+  h1 { font-size:1.7rem; margin:0; }
+  h2 { font-size:1.15rem; margin:32px 0 8px; color:var(--accent); }
+  p, li { color:var(--ink); }
+  .meta { color:var(--soft); font-size:.92rem; margin:4px 0 24px; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:18px 20px; margin:16px 0; }
+  .card strong { color:var(--accent); }
+  a { color:var(--accent); }
+  hr { border:0; border-top:1px solid var(--line); margin:48px 0 32px; }
+  ul { padding-left:20px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg viewBox="0 0 108 108" aria-hidden="true"><rect width="108" height="108" fill="#1565C0"/><path fill="#FFD54F" d="M62,34a13,13 0 1 0 0,26a13,13 0 1 0 0,-26z"/><path fill="#fff" d="M42,74a11,11 0 0 1 -1.2,-21.9a15,15 0 0 1 28.6,-2.6a12.5,12.5 0 0 1 -1.4,24.5z"/></svg>
+    <h1>Política de Privacidad de Mi Clima</h1>
+  </header>
+  <p class="meta">Vigente desde el 16 de noviembre de 2026 · <a href="#english">English version</a></p>
+
+  <div class="card">
+    <strong>En resumen:</strong> Mi Clima no tiene cuentas, publicidad ni rastreo. Usa tu ubicación
+    aproximada solo para pedir el pronóstico del lugar donde estás, y todo lo demás queda guardado
+    en tu teléfono.
+  </div>
+
+  <h2>Qué datos usa la app</h2>
+  <ul>
+    <li><strong>Ubicación aproximada.</strong> Si das el permiso, la app lee la ubicación aproximada
+      del teléfono para saber de qué lugar pedir el pronóstico. No pide la ubicación precisa ni la
+      ubicación en segundo plano.</li>
+    <li><strong>Ciudades que buscás.</strong> El texto que escribís en el buscador de lugares.</li>
+    <li><strong>Preferencias.</strong> Lugares guardados, unidades, tema, modelo meteorológico y
+      demás ajustes.</li>
+  </ul>
+
+  <h2>Qué se envía fuera del teléfono</h2>
+  <p>Mi Clima obtiene los datos de <a href="https://open-meteo.com/">Open-Meteo</a>. Para eso le envía:</p>
+  <ul>
+    <li>Las coordenadas del lugar consultado, redondeadas a dos decimales (alrededor de un kilómetro),
+      para obtener el pronóstico y la calidad del aire.</li>
+    <li>El nombre de la ciudad que buscás, para encontrarla.</li>
+  </ul>
+  <p>Como en cualquier conexión a internet, Open-Meteo recibe además la dirección IP desde la que
+    se hace la consulta. Estas consultas viajan cifradas (HTTPS) y no incluyen tu nombre, correo,
+    ni identificadores del dispositivo. El tratamiento que hace Open-Meteo se rige por
+    <a href="https://open-meteo.com/en/terms">sus propios términos y política de privacidad</a>.</p>
+  <p>Para mostrar el nombre de la localidad de tu ubicación, la app usa el servicio de
+    geocodificación del sistema Android, que puede consultar a Google con esas coordenadas.</p>
+
+  <h2>Qué queda en tu teléfono</h2>
+  <p>El último pronóstico descargado, tus lugares guardados y tus ajustes se guardan solo en el
+    almacenamiento privado de la app. Se borran al desinstalarla o al borrar sus datos desde los
+    ajustes de Android.</p>
+
+  <h2>Qué no hace la app</h2>
+  <ul>
+    <li>No tiene cuentas de usuario ni pide datos personales.</li>
+    <li>No muestra publicidad ni usa herramientas de analítica o rastreo.</li>
+    <li>No vende ni comparte datos con terceros con fines comerciales.</li>
+  </ul>
+
+  <h2>Permisos</h2>
+  <ul>
+    <li><strong>Ubicación aproximada:</strong> para el pronóstico de donde estás. Es opcional: sin
+      el permiso podés buscar y guardar ciudades.</li>
+    <li><strong>Internet:</strong> para descargar el pronóstico.</li>
+    <li><strong>Notificaciones:</strong> solo si activás el aviso de lluvia.</li>
+  </ul>
+
+  <h2>Menores</h2>
+  <p>La app no está dirigida a menores de 13 años y no recopila datos personales de nadie.</p>
+
+  <h2>Cambios y contacto</h2>
+  <p>Si esta política cambia, la nueva versión se publicará en esta misma página con su fecha.
+    Consultas: <strong>[COMPLETAR CORREO DE CONTACTO]</strong>.</p>
+
+  <hr>
+
+  <header id="english">
+    <h1>Mi Clima Privacy Policy</h1>
+  </header>
+  <p class="meta">Effective November 16, 2026</p>
+
+  <div class="card">
+    <strong>In short:</strong> Mi Clima has no accounts, ads or tracking. It uses your approximate
+    location only to request the forecast for where you are, and everything else stays on your phone.
+  </div>
+
+  <h2>Data the app uses</h2>
+  <ul>
+    <li><strong>Approximate location.</strong> If you grant the permission, the app reads your
+      phone's approximate location to know which place to request the forecast for. It never asks
+      for precise or background location.</li>
+    <li><strong>Cities you search for.</strong> The text you type in the place search.</li>
+    <li><strong>Preferences.</strong> Saved places, units, theme, weather model and other settings.</li>
+  </ul>
+
+  <h2>What leaves your phone</h2>
+  <p>Mi Clima gets its data from <a href="https://open-meteo.com/">Open-Meteo</a>. To do so it sends:</p>
+  <ul>
+    <li>The coordinates of the requested place, rounded to two decimals (about one kilometre), to
+      get the forecast and air quality.</li>
+    <li>The name of the city you search for, to find it.</li>
+  </ul>
+  <p>As with any internet connection, Open-Meteo also receives the IP address the request comes
+    from. Requests are encrypted (HTTPS) and include no name, e-mail or device identifiers.
+    Open-Meteo's handling of that data is governed by
+    <a href="https://open-meteo.com/en/terms">its own terms and privacy policy</a>.</p>
+  <p>To show the name of your locality, the app uses Android's system geocoding service, which may
+    query Google with those coordinates.</p>
+
+  <h2>What stays on your phone</h2>
+  <p>The last downloaded forecast, your saved places and your settings are stored only in the
+    app's private storage. They are deleted when you uninstall the app or clear its data in
+    Android settings.</p>
+
+  <h2>What the app does not do</h2>
+  <ul>
+    <li>No user accounts and no personal data requested.</li>
+    <li>No advertising, analytics or tracking tools.</li>
+    <li>No selling or sharing of data with third parties for commercial purposes.</li>
+  </ul>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><strong>Approximate location:</strong> for the forecast where you are. Optional: without it
+      you can search for and save cities.</li>
+    <li><strong>Internet:</strong> to download the forecast.</li>
+    <li><strong>Notifications:</strong> only if you turn on the rain alert.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>The app is not directed at children under 13 and collects no personal data from anyone.</p>
+
+  <h2>Changes and contact</h2>
+  <p>If this policy changes, the new version will be published on this page with its date.
+    Questions: <strong>[COMPLETAR CORREO DE CONTACTO]</strong>.</p>
+</main>
+</body>
+</html>

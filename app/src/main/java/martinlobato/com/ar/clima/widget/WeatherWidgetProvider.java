@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -28,8 +29,8 @@ import martinlobato.com.ar.clima.util.ThemeUtils;
 import martinlobato.com.ar.clima.util.UnitFormat;
 
 /**
- * Widget de pantalla de inicio: clima actual del lugar seleccionado y las próximas horas.
- * Se dibuja siempre desde la caché; quien baja datos nuevos (Inicio o RefreshWorker) pide
+ * Widgets de Mi Clima (ver {@link Kind}); esta clase es además el provider del 4×2.
+ * Se dibujan siempre desde la caché; quien baja datos nuevos (Inicio o RefreshWorker) pide
  * que se redibuje.
  */
 public class WeatherWidgetProvider extends AppWidgetProvider {
@@ -63,22 +64,49 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         BackgroundExecutor.run(() -> updateAll(app));
     }
 
-    /** Redibuja todos los widgets con la caché actual. Bloqueante: no llamar en el hilo principal. */
-    public static void updateAll(Context context) {
-        AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        if (manager == null) return;
-        int[] ids = manager.getAppWidgetIds(new ComponentName(context, WeatherWidgetProvider.class));
-        if (ids == null || ids.length == 0) return;
-        Forecast forecast = WeatherRepository.loadCached(context, PlaceStore.selectedCacheKey(context));
-        RemoteViews views = buildViews(context, forecast, System.currentTimeMillis());
-        for (int id : ids) {
-            manager.updateAppWidget(id, views);
+    /** Variantes de widget; cada una tiene su provider, su layout y su estilo. */
+    public enum Kind {
+        /** 4×2 con tarjeta: clima actual y próximas horas. */
+        FULL(WeatherWidgetProvider.class, R.layout.widget_weather),
+        /** 2×1 con tarjeta: lo esencial. */
+        COMPACT(CompactWidgetProvider.class, R.layout.widget_compact),
+        /** 4×1 transparente con texto blanco, para pantalla de bloqueo o sobre el fondo. */
+        LOCK(LockWidgetProvider.class, R.layout.widget_lock);
+
+        final Class<? extends AppWidgetProvider> provider;
+        final int layout;
+
+        Kind(Class<? extends AppWidgetProvider> provider, int layout) {
+            this.provider = provider;
+            this.layout = layout;
         }
     }
 
-    /** Arma el contenido del widget; sin pronóstico vigente muestra el mensaje de "abrí la app". */
-    public static RemoteViews buildViews(Context context, @Nullable Forecast f, long now) {
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_weather);
+    /** Redibuja todos los widgets (de las tres variantes) con la caché actual. Bloqueante. */
+    public static void updateAll(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        if (manager == null) return;
+        Forecast forecast = null;
+        boolean loaded = false;
+        long now = System.currentTimeMillis();
+        for (Kind kind : Kind.values()) {
+            int[] ids = manager.getAppWidgetIds(new ComponentName(context, kind.provider));
+            if (ids == null || ids.length == 0) continue;
+            if (!loaded) {
+                // La caché se lee una sola vez, y solo si hay algún widget puesto.
+                forecast = WeatherRepository.loadCached(context, PlaceStore.selectedCacheKey(context));
+                loaded = true;
+            }
+            RemoteViews views = buildViews(context, forecast, now, kind);
+            for (int id : ids) {
+                manager.updateAppWidget(id, views);
+            }
+        }
+    }
+
+    /** Arma el contenido de un widget; sin pronóstico vigente muestra el mensaje de "abrí la app". */
+    public static RemoteViews buildViews(Context context, @Nullable Forecast f, long now, Kind kind) {
+        RemoteViews views = new RemoteViews(context.getPackageName(), kind.layout);
         Intent open = new Intent(context, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         views.setOnClickPendingIntent(R.id.widgetRoot, PendingIntent.getActivity(context, 0, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
@@ -90,7 +118,8 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         if (!usable) return views;
 
         UnitFormat uf = Prefs.units(context);
-        int accent = ThemeUtils.currentPrimaryColor(context);
+        // El transparente va todo en blanco para leerse sobre cualquier fondo de pantalla.
+        int accent = kind == Kind.LOCK ? Color.WHITE : ThemeUtils.currentPrimaryColor(context);
         int iconColor = ContextCompat.getColor(context, R.color.widget_text);
         Forecast.Hourly h = f.hourly;
         int hourIdx = f.hourIndexAt(now);
@@ -99,11 +128,24 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widgetPlace,
                 f.place != null ? f.place : context.getString(R.string.place_unknown));
         views.setTextViewText(R.id.widgetTemp, uf.temp(h.temp[hourIdx]));
-        views.setTextViewText(R.id.widgetCondition, context.getString(WeatherCode.description(h.code[hourIdx])));
-        views.setTextViewText(R.id.widgetHiLo, context.getString(R.string.hi_lo,
+        // En el compacto no entra "Máx … · Mín …": se muestra "máx / mín".
+        views.setTextViewText(R.id.widgetHiLo, context.getString(
+                kind == Kind.COMPACT ? R.string.widget_hi_lo_short : R.string.hi_lo,
                 uf.temp(f.daily.tempMax[dayIdx]), uf.temp(f.daily.tempMin[dayIdx])));
         views.setImageViewResource(R.id.widgetIcon, WeatherCode.icon(h.code[hourIdx], h.isDay[hourIdx]));
         views.setInt(R.id.widgetIcon, "setColorFilter", accent);
+        if (kind == Kind.COMPACT) return views;
+
+        String condition = context.getString(WeatherCode.description(h.code[hourIdx]));
+        if (kind == Kind.LOCK) {
+            // Una sola fila de alto: se suma la probabilidad de lluvia del día a la condición.
+            double rain = f.daily.precipProbMax[dayIdx];
+            views.setTextViewText(R.id.widgetCondition, Double.isNaN(rain) ? condition
+                    : context.getString(R.string.fmt_info, condition,
+                    context.getString(R.string.widget_rain, UnitFormat.percent(rain))));
+            return views;
+        }
+        views.setTextViewText(R.id.widgetCondition, condition);
 
         SimpleDateFormat hourFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
         hourFmt.setTimeZone(f.timeZone());

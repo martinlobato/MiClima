@@ -56,10 +56,17 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   con deshacer.
 - `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo, paleta,
   modelo meteorológico y frecuencia de actualización en segundo plano.
-- `widget/WeatherWidgetProvider`: widget 4×2 con el clima actual y 5 casillas cada 3 horas del
-  lugar seleccionado. Se dibuja siempre desde la caché (`buildViews`); Inicio, Lugares, Ajustes
-  y el worker llaman a `requestUpdate`/`updateAll` cuando cambia algo. Sigue el modo claro/oscuro
-  del sistema, no el de la app.
+- Widgets (`widget/WeatherWidgetProvider.Kind`): FULL 4×2 (clima actual + 5 casillas cada 3 h),
+  COMPACT 2×1 y LOCK 4×1 transparente con texto blanco (para pantalla de bloqueo o sobre el
+  fondo). Cada variante tiene su provider (`CompactWidgetProvider`, `LockWidgetProvider`) y su
+  layout; todos se dibujan desde la caché con `buildViews`. Inicio, Lugares, Ajustes y el worker
+  llaman a `requestUpdate`/`updateAll` cuando cambia algo. Los que tienen tarjeta siguen el modo
+  claro/oscuro del sistema, no el de la app. Declaran `home_screen|keyguard`; en Samsung
+  (One UI 6/7) la pantalla de bloqueo nativa solo admite widgets del sistema, así que ahí se
+  agregan con el módulo LockStar de Good Lock.
+- Aviso de lluvia: `data/RainAlert` (lógica pura: primera hora con ≥60 % o ≥0,5 mm en las
+  próximas 6 h, sin repetir la misma lluvia) y `work/RainNotifier` (notificación). Lo dispara
+  `RefreshWorker`; está apagado por defecto y al activarlo en Ajustes pide `POST_NOTIFICATIONS`.
 - Inicio muestra además la tarjeta de calidad del aire (`AqiBarView`) y el detalle de día tiene el
   chip "Aire".
 
@@ -69,6 +76,15 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 abre Inicio con una caché sintética, `DayDetailTest` (detalle de día) y `PlacesScreenTest`
 (lugares y unidades); guardan capturas en `app/build/screenshots/`. Datos sintéticos en `TestData`.
 
-## Pendiente (plan por fases)
+## Publicación
 
-5. Aviso de lluvia próxima, ficha de Play Store.
+`store_assets/` tiene la ficha de Google Play (`ficha_play_store.md`), el ícono 512, el gráfico
+de funciones y capturas generadas desde los tests. `politica_privacidad/index.html` es la política
+de privacidad (ES + EN); falta completar el correo de contacto y publicarla. Falta también
+generar el `.aab` firmado.
+
+## Pendiente
+
+- Causa del HTTP 403 que devolvió el pronóstico en el teléfono (sin confirmar).
+- Verificar en un teléfono: modelos GFS/ICON/GEM/Météo-France, widgets, segundo plano y aviso
+  de lluvia.

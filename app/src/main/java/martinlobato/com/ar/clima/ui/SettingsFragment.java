@@ -1,11 +1,17 @@
 package martinlobato.com.ar.clima.ui;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +30,7 @@ import martinlobato.com.ar.clima.util.ThemeUtils;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.util.Units;
 import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
+import martinlobato.com.ar.clima.work.RainNotifier;
 import martinlobato.com.ar.clima.work.RefreshScheduler;
 
 /** Ajustes: unidades de medida y tema visual (modo + paleta, mismo sistema que MyLoc/Ubica). */
@@ -31,6 +38,22 @@ public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;
     private Context appCtx;
+
+    private ActivityResultLauncher<String> notificationPermission;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        notificationPermission = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(), granted -> {
+                    Prefs.setRainAlertEnabled(appCtx, granted);
+                    if (binding == null) return;
+                    if (!granted) {
+                        binding.switchRainAlert.setChecked(false);
+                        Toast.makeText(appCtx, R.string.rain_alert_blocked, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
 
     @Nullable
     @Override
@@ -46,6 +69,7 @@ public class SettingsFragment extends Fragment {
         appCtx = requireContext().getApplicationContext();
         setupUnits();
         setupData();
+        setupRainAlert();
         setupThemeMode();
         setupThemePalette();
     }
@@ -81,6 +105,29 @@ public class SettingsFragment extends Fragment {
                 })
                 .setNegativeButton(android.R.string.cancel, null)
                 .show());
+    }
+
+    /**
+     * Aviso de lluvia: al activarlo se pide el permiso de notificaciones (Android 13+); si se
+     * niega, el switch vuelve a apagado.
+     */
+    private void setupRainAlert() {
+        binding.switchRainAlert.setChecked(Prefs.isRainAlertEnabled(appCtx) && RainNotifier.canNotify(appCtx));
+        binding.switchRainAlert.setOnCheckedChangeListener((button, checked) -> {
+            if (!checked) {
+                Prefs.setRainAlertEnabled(appCtx, false);
+                return;
+            }
+            if (RainNotifier.canNotify(appCtx)) {
+                Prefs.setRainAlertEnabled(appCtx, true);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+            } else {
+                // Notificaciones bloqueadas desde los ajustes del sistema: no se puede activar acá.
+                button.setChecked(false);
+                Toast.makeText(appCtx, R.string.rain_alert_blocked, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private int refreshIndex() {

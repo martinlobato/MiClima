@@ -8,10 +8,14 @@ import androidx.work.WorkerParameters;
 
 import java.io.IOException;
 
+import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
-/** Actualiza en segundo plano el pronóstico del lugar seleccionado y redibuja los widgets. */
+/**
+ * Actualiza en segundo plano el pronóstico del lugar seleccionado, redibuja los widgets y,
+ * si está activado, avisa de lluvia próxima.
+ */
 public class RefreshWorker extends Worker {
 
     public RefreshWorker(@NonNull Context context, @NonNull WorkerParameters params) {
@@ -23,8 +27,11 @@ public class RefreshWorker extends Worker {
     public Result doWork() {
         Context ctx = getApplicationContext();
         try {
-            WeatherRepository.refreshSelected(ctx);
+            Forecast forecast = WeatherRepository.refreshSelected(ctx);
             WeatherWidgetProvider.updateAll(ctx);
+            if (forecast != null) {
+                RainNotifier.check(ctx, forecast);
+            }
             return Result.success();
         } catch (IOException e) {
             // Sin red o servidor caído: WorkManager reintenta con espera creciente.
