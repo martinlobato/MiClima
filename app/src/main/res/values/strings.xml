@@ -60,7 +60,7 @@
     <string name="empty_permission_desc">Mi Clima usa la ubicación aproximada para mostrarte el pronóstico del lugar donde estás.</string>
     <string name="empty_permission_action">Permitir ubicación</string>
     <string name="empty_error_title">No se pudo cargar el clima</string>
-    <string name="empty_error_desc">Revisá la conexión a internet y volvé a intentar.</string>
+    <string name="empty_error_desc">No se pudo bajar el pronóstico. Volvé a intentar en un momento.</string>
     <string name="empty_location_desc">No se pudo obtener tu ubicación. Activá la ubicación del teléfono y volvé a intentar.</string>
     <string name="action_retry">Reintentar</string>
     <string name="error_refresh">No se pudo actualizar. Se muestra el último dato guardado.</string>
@@ -210,4 +210,10 @@
     <string name="widget_name">Mi Clima</string>
     <string name="widget_description">Clima actual y próximas horas</string>
     <string name="widget_empty">Abrí Mi Clima para cargar el pronóstico</string>
+
+    <!-- Motivos de error al bajar el pronóstico -->
+    <string name="error_rate_limited">Open-Meteo rechazó la consulta porque esta conexión superó su límite de pedidos. Probá con otra red (wifi o datos móviles) o más tarde.</string>
+    <string name="error_service">El servicio respondió con un error: %1$s</string>
+    <string name="error_no_connection">No se pudo conectar con Open-Meteo.</string>
+    <string name="error_detail">Detalle: %1$s</string>
 </resources>

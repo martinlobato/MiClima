@@ -55,7 +55,7 @@
     <string name="empty_permission_desc">Mi Clima uses your approximate location to show the forecast for where you are.</string>
     <string name="empty_permission_action">Allow location</string>
     <string name="empty_error_title">Couldn\'t load the weather</string>
-    <string name="empty_error_desc">Check your internet connection and try again.</string>
+    <string name="empty_error_desc">Couldn\'t download the forecast. Try again in a moment.</string>
     <string name="empty_location_desc">Couldn\'t get your location. Turn on location on your phone and try again.</string>
     <string name="action_retry">Retry</string>
     <string name="error_refresh">Couldn\'t refresh. Showing the last saved data.</string>
@@ -196,4 +196,9 @@
     <string name="widget_name">Mi Clima</string>
     <string name="widget_description">Current weather and next hours</string>
     <string name="widget_empty">Open Mi Clima to load the forecast</string>
+
+    <string name="error_rate_limited">Open-Meteo rejected the request because this connection went over its request limit. Try another network (Wi-Fi or mobile data) or try later.</string>
+    <string name="error_service">The service answered with an error: %1$s</string>
+    <string name="error_no_connection">Couldn\'t connect to Open-Meteo.</string>
+    <string name="error_detail">Details: %1$s</string>
 </resources>

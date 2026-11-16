@@ -28,6 +28,7 @@ import martinlobato.com.ar.clima.MainActivity;
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.data.AirQuality;
+import martinlobato.com.ar.clima.data.ApiException;
 import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.Place;
 import martinlobato.com.ar.clima.data.PlaceStore;
@@ -170,27 +171,58 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    /** Resultado de una bajada: el pronóstico, o el error que la impidió. */
+    private static final class FetchResult {
+        final Forecast forecast;
+        final Exception error;
+
+        FetchResult(Forecast forecast, Exception error) {
+            this.forecast = forecast;
+            this.error = error;
+        }
+    }
+
     private void fetch(final double lat, final double lon, @Nullable final String knownPlace) {
         BackgroundExecutor.execute(() -> {
             try {
                 String name = knownPlace != null ? knownPlace : LocationHelper.placeName(appCtx, lat, lon);
-                return WeatherRepository.fetch(appCtx, cacheKey, lat, lon, name);
+                return new FetchResult(WeatherRepository.fetch(appCtx, cacheKey, lat, lon, name), null);
             } catch (Exception e) {
-                return null;
+                return new FetchResult(null, e);
             }
         }, result -> {
             if (binding == null) return;
             setRefreshing(false);
-            if (result != null) {
-                forecast = result;
+            if (result.forecast != null) {
+                forecast = result.forecast;
                 render();
                 WeatherWidgetProvider.requestUpdate(appCtx);
             } else if (forecast != null) {
-                Toast.makeText(appCtx, R.string.error_refresh, Toast.LENGTH_LONG).show();
+                Toast.makeText(appCtx, getString(R.string.error_refresh) + "\n" + describe(result.error),
+                        Toast.LENGTH_LONG).show();
             } else {
                 showEmpty(R.string.empty_error_title, R.string.empty_error_desc, false);
+                binding.tvEmptyDetail.setText(describe(result.error));
+                binding.tvEmptyDetail.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    /** Explica por qué falló la bajada, con el motivo real para poder diagnosticarlo. */
+    private String describe(@Nullable Exception error) {
+        if (error instanceof ApiException) {
+            ApiException api = (ApiException) error;
+            if (api.isRateLimited()) return getString(R.string.error_rate_limited);
+            return getString(R.string.error_service, error.getMessage());
+        }
+        if (error instanceof java.net.UnknownHostException || error instanceof java.net.ConnectException
+                || error instanceof java.net.SocketTimeoutException) {
+            return getString(R.string.error_no_connection);
+        }
+        if (error == null) return "";
+        String message = error.getMessage();
+        return getString(R.string.error_detail, error.getClass().getSimpleName()
+                + (message == null ? "" : ": " + message));
     }
 
     private void setRefreshing(boolean value) {
@@ -204,6 +236,7 @@ public class HomeFragment extends Fragment {
         if (forecast != null) return; // hay datos en pantalla: no taparlos
         binding.content.setVisibility(View.GONE);
         binding.emptyState.setVisibility(View.VISIBLE);
+        binding.tvEmptyDetail.setVisibility(View.GONE);
         binding.tvEmptyTitle.setText(titleRes);
         binding.tvEmptyDesc.setText(descRes);
         binding.btnEmptyAction.setText(askPermission

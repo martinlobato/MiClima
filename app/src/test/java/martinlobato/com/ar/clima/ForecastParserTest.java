@@ -114,4 +114,24 @@ public class ForecastParserTest {
         assertEquals(7_200_000, g.timeZone().getRawOffset());
         assertEquals(1767218400000L, g.hourly.time[0]); // 2025-12-31T22:00:00Z
     }
+
+    /** Respuesta real de Open-Meteo (Santiago, URL completa de la app, modelo automático). */
+    @Test
+    public void parsesARealResponse() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/forecast_real_santiago.json")) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int n;
+            while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+            Forecast real = ForecastParser.parse(new String(out.toByteArray(), StandardCharsets.UTF_8), 1L);
+            assertEquals(16 * 24, real.hourly.size());
+            assertEquals(16, real.daily.size());
+            assertEquals("America/Santiago", real.timezoneId);
+            assertEquals(16.9, real.current.temp, 1e-9);
+            assertEquals(15.6, real.hourly.temp[0], 1e-9);
+            assertEquals(santiago(2026, 11, 16, 6, 30), real.daily.sunrise[0]);
+            assertFalse(Double.isNaN(real.hourly.uv[383]));
+            assertFalse(Double.isNaN(real.daily.windDirDominant[15]));
+        }
+    }
 }
