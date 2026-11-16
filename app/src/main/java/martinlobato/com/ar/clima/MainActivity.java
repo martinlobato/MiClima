@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 
 import martinlobato.com.ar.clima.databinding.ActivityMainBinding;
 import martinlobato.com.ar.clima.ui.HomeFragment;
+import martinlobato.com.ar.clima.ui.PlacesFragment;
 import martinlobato.com.ar.clima.ui.SettingsFragment;
 import martinlobato.com.ar.clima.util.ThemeUtils;
 
@@ -25,17 +26,21 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
 
         binding.bottomNav.setOnItemSelectedListener(item -> {
-            if (item.getItemId() == R.id.nav_settings) {
-                showFragment(new SettingsFragment(), getString(R.string.settings_title),
-                        R.drawable.ic_toolbar_settings);
-            } else {
-                showHome();
-            }
+            int id = item.getItemId();
+            Fragment fragment = id == R.id.nav_settings ? new SettingsFragment()
+                    : id == R.id.nav_places ? new PlacesFragment() : new HomeFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, fragment)
+                    .commit();
+            applyToolbar(id);
             return true;
         });
 
         if (savedInstanceState == null) {
-            showHome();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragmentContainer, new HomeFragment())
+                    .commit();
+            applyToolbar(R.id.nav_home);
         }
     }
 
@@ -43,24 +48,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        boolean settings = binding.bottomNav.getSelectedItemId() == R.id.nav_settings;
-        applyToolbar(getString(settings ? R.string.settings_title : R.string.app_name),
-                settings ? R.drawable.ic_toolbar_settings : R.drawable.ic_toolbar_logo);
+        applyToolbar(binding.bottomNav.getSelectedItemId());
     }
 
-    private void showHome() {
-        showFragment(new HomeFragment(), getString(R.string.app_name), R.drawable.ic_toolbar_logo);
+    /** Vuelve a Inicio (por ejemplo después de elegir un lugar). */
+    public void openHome() {
+        binding.bottomNav.setSelectedItemId(R.id.nav_home);
     }
 
-    private void showFragment(Fragment fragment, String title, int logoResId) {
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainer, fragment)
-                .commit();
-        applyToolbar(title, logoResId);
+    /** Abre la pestaña Lugares (por ejemplo desde el estado vacío de Inicio). */
+    public void openPlaces() {
+        binding.bottomNav.setSelectedItemId(R.id.nav_places);
     }
 
-    private void applyToolbar(String title, int logoResId) {
-        binding.toolbar.setLogo(logoResId);
+    private void applyToolbar(int navId) {
+        int title = navId == R.id.nav_settings ? R.string.settings_title
+                : navId == R.id.nav_places ? R.string.places_title : R.string.app_name;
+        int logo = navId == R.id.nav_settings ? R.drawable.ic_toolbar_settings
+                : navId == R.id.nav_places ? R.drawable.ic_toolbar_places : R.drawable.ic_toolbar_logo;
+        binding.toolbar.setLogo(logo);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(title);
         }

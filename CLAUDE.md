@@ -17,8 +17,15 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - `data/WeatherApi` arma la URL (lat/lon redondeadas a 2 decimales) y baja el JSON con
   `HttpURLConnection`. `data/ForecastParser` lo convierte en `Forecast` (null → `NaN`; los tiempos
   ISO son hora local **del lugar**, se convierten a epoch con la zona que informa la API).
-- `data/WeatherRepository` guarda la respuesta cruda en `filesDir/forecast_cache.json`; Inicio
-  muestra primero la caché y actualiza si tiene más de 30 min.
+- `data/WeatherRepository` guarda la respuesta cruda en disco, **una caché por lugar**
+  (`forecast_cache.json` para la ubicación actual, `forecast_p<id>.json` para cada lugar guardado);
+  Inicio muestra primero la caché y actualiza si tiene más de 30 min.
+- Lugares: `data/GeocodingApi` busca ciudades en `geocoding-api.open-meteo.com`; `data/PlaceStore`
+  guarda los lugares y el seleccionado en SharedPreferences (JSON). Seleccionado null = ubicación
+  actual del teléfono.
+- Unidades: la API siempre se consulta en métrico; `util/Units` convierte y `util/UnitFormat`
+  formatea según lo elegido en Ajustes (`Prefs.units`). Nunca formatear valores con unidad a mano:
+  pasar siempre por `UnitFormat`. La unidad de lluvia define también la de distancia (mm→km, in→mi).
 - Ubicación: solo `ACCESS_COARSE_LOCATION` (`util/LocationHelper`, Fused con fallback al
   LocationManager). Sin permiso se usa el último lugar guardado.
 
@@ -32,16 +39,21 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   línea con área o barras, serie secundaria punteada, selección al tocar/arrastrar; la escala
   sale de `util/ChartScale`) y tabla hora por hora de 12 columnas con la hora fija a la izquierda.
   Flechas para pasar al día anterior/siguiente.
-- `ui/SettingsFragment`: modo y paleta.
+- `ui/PlacesFragment` (pestaña Lugares): búsqueda con demora de 500 ms, resultados para agregar,
+  lista de guardados con la temperatura tomada de la caché, selección (vuelve a Inicio) y quitar
+  con deshacer.
+- `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo y paleta.
 
 ## Tests
 
 `./gradlew testDebugUnitTest` — parser y formateo en JVM, más `HomeScreenTest` (Robolectric) que
-abre Inicio con una caché sintética y `DayDetailTest` que abre el detalle de día; ambos guardan
-capturas en `app/build/screenshots/`. Los datos sintéticos están en `TestData`.
+abre Inicio con una caché sintética, `DayDetailTest` (detalle de día) y `PlacesScreenTest`
+(lugares y unidades); guardan capturas en `app/build/screenshots/`. Datos sintéticos en `TestData`.
 
 ## Pendiente (plan por fases)
 
-3. Lugares (búsqueda con la API de geocoding de Open-Meteo, guardados) y unidades en Ajustes.
 4. Calidad del aire, widget y actualización en segundo plano.
 5. Aviso de lluvia próxima, ficha de Play Store.
+
+Pendiente de decidir: selector de modelo meteorológico en Ajustes (parámetro `models` de
+Open-Meteo: ECMWF, GFS, ICON…) como forma de hacer configurable el origen de los datos.

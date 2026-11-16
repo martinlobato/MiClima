@@ -42,6 +42,11 @@ final class TestData {
 
     /** Escribe una caché recién bajada con 16 días de datos sintéticos a partir de hoy. */
     static void writeCache(Context ctx) throws Exception {
+        writeCache(ctx, "gps", "Santiago");
+    }
+
+    /** Igual que {@link #writeCache(Context)} pero para la caché de un lugar dado. */
+    static void writeCache(Context ctx, String key, String placeName) throws Exception {
         TimeZone tz = TimeZone.getTimeZone(TZ);
         SimpleDateFormat hourFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US);
         SimpleDateFormat dayFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
@@ -134,9 +139,9 @@ final class TestData {
 
         JSONObject wrapper = new JSONObject();
         wrapper.put("fetchedAt", System.currentTimeMillis());
-        wrapper.put("place", "Santiago");
+        wrapper.put("place", placeName);
         wrapper.put("raw", root.toString());
-        try (FileOutputStream out = new FileOutputStream(new File(ctx.getFilesDir(), "forecast_cache.json"))) {
+        try (FileOutputStream out = new FileOutputStream(new File(ctx.getFilesDir(), "gps".equals(key) ? "forecast_cache.json" : "forecast_" + key + ".json"))) {
             out.write(wrapper.toString().getBytes(StandardCharsets.UTF_8));
         }
     }

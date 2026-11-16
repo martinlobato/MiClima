@@ -30,8 +30,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.data.Forecast;
+import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.ActivityDayDetailBinding;
@@ -39,6 +41,7 @@ import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.ChartScale;
 import martinlobato.com.ar.clima.util.Fmt;
 import martinlobato.com.ar.clima.util.ThemeUtils;
+import martinlobato.com.ar.clima.util.UnitFormat;
 
 /**
  * Detalle de un día: resumen, gráfico horario de la variable elegida (temperatura, lluvia,
@@ -76,6 +79,7 @@ public class DayDetailActivity extends AppCompatActivity {
     private int[] hours = new int[0];
     private Variable variable = Variable.TEMP;
     private SimpleDateFormat hourFmt;
+    private UnitFormat uf = UnitFormat.metric();
     private String[] compass;
     private String[] uvLevels;
 
@@ -111,6 +115,7 @@ public class DayDetailActivity extends AppCompatActivity {
             int ordinal = savedInstanceState.getInt(STATE_VARIABLE, 0);
             variable = Variable.values()[Math.max(0, Math.min(Variable.values().length - 1, ordinal))];
         }
+        uf = Prefs.units(this);
         compass = getResources().getStringArray(R.array.compass_points);
         uvLevels = getResources().getStringArray(R.array.uv_levels);
 
@@ -120,7 +125,7 @@ public class DayDetailActivity extends AppCompatActivity {
         binding.btnNextDay.setOnClickListener(v -> showDay(dayIndex + 1));
 
         final Context app = getApplicationContext();
-        BackgroundExecutor.execute(() -> WeatherRepository.loadCached(app), cached -> {
+        BackgroundExecutor.execute(() -> WeatherRepository.loadCached(app, PlaceStore.selectedCacheKey(app)), cached -> {
             if (isFinishing() || isDestroyed()) return;
             if (cached == null || cached.daily.size() == 0 || cached.hourly.size() == 0) {
                 finish();
@@ -227,7 +232,7 @@ public class DayDetailActivity extends AppCompatActivity {
         binding.ivDayIcon.setImageResource(WeatherCode.icon(d.code[dayIndex], true));
         binding.tvDayCondition.setText(WeatherCode.description(d.code[dayIndex]));
         binding.tvDayHiLo.setText(getString(R.string.info_hi_lo,
-                Fmt.temp(d.tempMax[dayIndex]), Fmt.temp(d.tempMin[dayIndex])));
+                uf.temp(d.tempMax[dayIndex]), uf.temp(d.tempMin[dayIndex])));
 
         long sunrise = d.sunrise[dayIndex];
         long sunset = d.sunset[dayIndex];
@@ -235,8 +240,8 @@ public class DayDetailActivity extends AppCompatActivity {
         double mm = d.precipSum[dayIndex];
         String rain = Double.isNaN(prob) && Double.isNaN(mm) ? Fmt.DASH
                 : Double.isNaN(mm) ? percent(prob)
-                : Double.isNaN(prob) ? getString(R.string.fmt_mm, Fmt.oneDecimal(mm))
-                : getString(R.string.fmt_info, percent(prob), getString(R.string.fmt_mm, Fmt.oneDecimal(mm)));
+                : Double.isNaN(prob) ? uf.precip(mm)
+                : getString(R.string.fmt_info, percent(prob), uf.precip(mm));
 
         binding.gridSummary.removeAllViews();
         CellGrid.addRow(binding.gridSummary,
@@ -261,6 +266,15 @@ public class DayDetailActivity extends AppCompatActivity {
         double[] out = new double[hours.length];
         for (int i = 0; i < hours.length; i++) {
             out[i] = source[hours[i]];
+        }
+        return out;
+    }
+
+    /** Pasa una serie métrica a la unidad elegida (para dibujarla y escalar el eje). */
+    private static double[] convert(double[] metric, java.util.function.DoubleUnaryOperator fn) {
+        double[] out = new double[metric.length];
+        for (int i = 0; i < metric.length; i++) {
+            out[i] = fn.applyAsDouble(metric[i]);
         }
         return out;
     }
@@ -291,14 +305,14 @@ public class DayDetailActivity extends AppCompatActivity {
                 values = series(h.precipProb);
                 bars = true;
                 scale = ChartScale.fixed(0, 100, 25);
-                axis = v -> getString(R.string.fmt_percent, Fmt.round(v));
+                axis = UnitFormat::percent;
                 legendRes = R.string.legend_rain;
                 break;
             case WIND:
-                values = series(h.wind);
-                secondary = series(h.gusts);
-                scale = ChartScale.of(0, hi(10, hi(max(values), max(secondary))), 4);
-                axis = Fmt::round;
+                values = convert(series(h.wind), uf::windValue);
+                secondary = convert(series(h.gusts), uf::windValue);
+                scale = ChartScale.of(0, hi(uf.windValue(10), hi(max(values), max(secondary))), 4);
+                axis = uf::windAxis;
                 legendRes = R.string.legend_gusts;
                 break;
             case UV:
@@ -310,17 +324,17 @@ public class DayDetailActivity extends AppCompatActivity {
             case HUMIDITY:
                 values = series(h.humidity);
                 scale = ChartScale.fixed(0, 100, 25);
-                axis = v -> getString(R.string.fmt_percent, Fmt.round(v));
+                axis = UnitFormat::percent;
                 break;
             case PRESSURE:
-                values = series(h.pressure);
+                values = convert(series(h.pressure), uf::pressureValue);
                 scale = ChartScale.of(min(values), max(values), 4);
-                axis = Fmt::round;
+                axis = uf::pressureAxis;
                 break;
             case TEMP:
             default:
-                values = series(h.temp);
-                secondary = series(h.apparent);
+                values = convert(series(h.temp), uf::tempValue);
+                secondary = convert(series(h.apparent), uf::tempValue);
                 scale = ChartScale.of(lo(min(values), min(secondary)), hi(max(values), max(secondary)), 4);
                 axis = Fmt::temp;
                 legendRes = R.string.legend_apparent;
@@ -342,7 +356,7 @@ public class DayDetailActivity extends AppCompatActivity {
             switch (variable) {
                 case RAIN:
                     text = getString(R.string.info_rain_day, percent(max(series(h.precipProb))),
-                            unit(R.string.fmt_mm, Fmt.oneDecimal(d.precipSum[dayIndex]), d.precipSum[dayIndex]));
+                            uf.precip(d.precipSum[dayIndex]));
                     break;
                 case WIND:
                     text = getString(R.string.info_wind_day, kmh(max(series(h.wind))), kmh(max(series(h.gusts))));
@@ -355,12 +369,12 @@ public class DayDetailActivity extends AppCompatActivity {
                             percent(max(series(h.humidity))));
                     break;
                 case PRESSURE:
-                    text = getString(R.string.info_range, Fmt.round(min(series(h.pressure))),
-                            unit(R.string.fmt_hpa, Fmt.round(max(series(h.pressure))), max(series(h.pressure))));
+                    text = getString(R.string.info_range, uf.pressureNumber(min(series(h.pressure))),
+                            uf.pressure(max(series(h.pressure))));
                     break;
                 case TEMP:
                 default:
-                    text = getString(R.string.info_hi_lo, Fmt.temp(max(series(h.temp))), Fmt.temp(min(series(h.temp))));
+                    text = getString(R.string.info_hi_lo, uf.temp(max(series(h.temp))), uf.temp(min(series(h.temp))));
                     break;
             }
         } else {
@@ -369,7 +383,7 @@ public class DayDetailActivity extends AppCompatActivity {
             switch (variable) {
                 case RAIN:
                     text = getString(R.string.fmt_info3, hour, percent(h.precipProb[i]),
-                            unit(R.string.fmt_mm, Fmt.oneDecimal(h.precip[i]), h.precip[i]));
+                            uf.precip(h.precip[i]));
                     break;
                 case WIND:
                     text = getString(R.string.fmt_info3, hour, windText(h.wind[i], h.windDir[i]),
@@ -380,16 +394,15 @@ public class DayDetailActivity extends AppCompatActivity {
                     break;
                 case HUMIDITY:
                     text = getString(R.string.fmt_info3, hour, percent(h.humidity[i]),
-                            getString(R.string.info_dew, Fmt.temp(h.dewPoint[i])));
+                            getString(R.string.info_dew, uf.temp(h.dewPoint[i])));
                     break;
                 case PRESSURE:
-                    text = getString(R.string.fmt_info, hour,
-                            unit(R.string.fmt_hpa, Fmt.round(h.pressure[i]), h.pressure[i]));
+                    text = getString(R.string.fmt_info, hour, uf.pressure(h.pressure[i]));
                     break;
                 case TEMP:
                 default:
-                    text = getString(R.string.fmt_info3, hour, Fmt.temp(h.temp[i]),
-                            getString(R.string.feels_like, Fmt.temp(h.apparent[i])));
+                    text = getString(R.string.fmt_info3, hour, uf.temp(h.temp[i]),
+                            getString(R.string.feels_like, uf.temp(h.apparent[i])));
                     break;
             }
         }
@@ -412,18 +425,20 @@ public class DayDetailActivity extends AppCompatActivity {
                 com.google.android.material.R.attr.colorPrimaryContainer);
         int nowHour = dayIndex == todayIndex ? forecast.hourIndexAt(System.currentTimeMillis()) : -1;
 
-        int[] headers = {R.string.col_temp, R.string.col_apparent, R.string.col_rain_prob,
-                R.string.col_rain_mm, R.string.col_wind, R.string.col_gusts, R.string.col_humidity,
-                R.string.col_dew, R.string.col_uv, R.string.col_pressure, R.string.col_cloud,
-                R.string.col_visibility};
+        String[] headers = {getString(R.string.col_temp), getString(R.string.col_apparent),
+                getString(R.string.col_rain_prob), uf.precip.label,
+                getString(R.string.col_wind, uf.wind.label), getString(R.string.col_gusts, uf.wind.label),
+                getString(R.string.col_humidity), getString(R.string.col_dew), getString(R.string.col_uv),
+                getString(R.string.col_pressure, uf.pressure.label), getString(R.string.col_cloud),
+                getString(R.string.col_visibility, uf.precip.distanceLabel)};
 
         // Encabezado.
         LinearLayout fixedHeader = newRow(dp(48), 0);
         fixedHeader.addView(newCell(getString(R.string.col_hour), dp(92), variant, true, 11.5f));
         binding.tableFixed.addView(fixedHeader);
         LinearLayout header = newRow(dp(48), 0);
-        for (int res : headers) {
-            header.addView(newCell(getString(res), dp(60), variant, true, 11.5f));
+        for (String title : headers) {
+            header.addView(newCell(title, dp(60), variant, true, 11.5f));
         }
         binding.tableScroll.addView(header);
 
@@ -446,21 +461,20 @@ public class DayDetailActivity extends AppCompatActivity {
             fixed.addView(spacer);
             binding.tableFixed.addView(fixed);
 
-            double visKm = h.visibility[i] / 1000.0;
             String[] cells = {
-                    Fmt.temp(h.temp[i]),
-                    Fmt.temp(h.apparent[i]),
+                    uf.temp(h.temp[i]),
+                    uf.temp(h.apparent[i]),
                     percent(h.precipProb[i]),
-                    Fmt.oneDecimal(h.precip[i]),
-                    Double.isNaN(h.wind[i]) ? Fmt.DASH : Double.isNaN(h.windDir[i]) ? Fmt.round(h.wind[i])
-                            : Fmt.round(h.wind[i]) + " " + compass[Fmt.compassIndex(h.windDir[i])],
-                    Fmt.round(h.gusts[i]),
+                    uf.precipNumber(h.precip[i]),
+                    Double.isNaN(h.wind[i]) || Double.isNaN(h.windDir[i]) ? uf.windNumber(h.wind[i])
+                            : uf.windNumber(h.wind[i]) + " " + compass[Fmt.compassIndex(h.windDir[i])],
+                    uf.windNumber(h.gusts[i]),
                     percent(h.humidity[i]),
-                    Fmt.temp(h.dewPoint[i]),
+                    uf.temp(h.dewPoint[i]),
                     Fmt.round(h.uv[i]),
-                    Fmt.round(h.pressure[i]),
+                    uf.pressureNumber(h.pressure[i]),
                     percent(h.cloud[i]),
-                    Double.isNaN(visKm) ? Fmt.DASH : visKm >= 10 ? Fmt.round(visKm) : Fmt.oneDecimal(visKm)};
+                    uf.distanceNumber(h.visibility[i] / 1000.0)};
             LinearLayout line = newRow(dp(42), background);
             for (int c = 0; c < cells.length; c++) {
                 line.addView(newCell(cells[c], dp(60), onSurface, c == 0, 13.5f));
@@ -495,22 +509,17 @@ public class DayDetailActivity extends AppCompatActivity {
 
     // ------------------------------------------------------------------ formato
 
-    private String percent(double value) {
-        return unit(R.string.fmt_percent, Fmt.round(value), value);
+    private static String percent(double value) {
+        return UnitFormat.percent(value);
     }
 
     private String kmh(double value) {
-        return unit(R.string.fmt_kmh, Fmt.round(value), value);
-    }
-
-    private String unit(int formatRes, String formatted, double raw) {
-        return Double.isNaN(raw) ? Fmt.DASH : getString(formatRes, formatted);
+        return uf.wind(value);
     }
 
     private String windText(double speed, double direction) {
-        if (Double.isNaN(speed)) return Fmt.DASH;
-        if (Double.isNaN(direction)) return kmh(speed);
-        return getString(R.string.fmt_wind_dir, Fmt.round(speed), compass[Fmt.compassIndex(direction)]);
+        if (Double.isNaN(speed) || Double.isNaN(direction)) return uf.wind(speed);
+        return uf.wind(speed) + " " + compass[Fmt.compassIndex(direction)];
     }
 
     private String uvText(double uv) {

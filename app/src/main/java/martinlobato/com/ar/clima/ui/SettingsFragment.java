@@ -12,13 +12,17 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
+
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.databinding.FragmentSettingsBinding;
 import martinlobato.com.ar.clima.databinding.ItemPaletteSwatchBinding;
 import martinlobato.com.ar.clima.util.ThemeUtils;
+import martinlobato.com.ar.clima.util.UnitFormat;
+import martinlobato.com.ar.clima.util.Units;
 
-/** Ajustes: tema visual (modo + paleta), mismo sistema que MyLoc/Ubica. */
+/** Ajustes: unidades de medida y tema visual (modo + paleta, mismo sistema que MyLoc/Ubica). */
 public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;
@@ -36,8 +40,47 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         appCtx = requireContext().getApplicationContext();
+        setupUnits();
         setupThemeMode();
         setupThemePalette();
+    }
+
+    /** Unidades: cada grupo guarda su elección; Inicio y el detalle la leen al abrirse. */
+    private void setupUnits() {
+        UnitFormat u = Prefs.units(appCtx);
+        bindUnit(binding.toggleUnitTemp, new int[]{R.id.btnTempC, R.id.btnTempF}, u.temp.ordinal());
+        bindUnit(binding.toggleUnitWind,
+                new int[]{R.id.btnWindKmh, R.id.btnWindMs, R.id.btnWindKn, R.id.btnWindMph}, u.wind.ordinal());
+        bindUnit(binding.toggleUnitPressure,
+                new int[]{R.id.btnPressureHpa, R.id.btnPressureMmhg, R.id.btnPressureInhg}, u.pressure.ordinal());
+        bindUnit(binding.toggleUnitPrecip, new int[]{R.id.btnPrecipMm, R.id.btnPrecipIn}, u.precip.ordinal());
+    }
+
+    /** El orden de {@code buttonIds} es el de los valores del enum correspondiente en Units. */
+    private void bindUnit(MaterialButtonToggleGroup group, final int[] buttonIds, int selected) {
+        group.check(buttonIds[selected]);
+        group.addOnButtonCheckedListener((g, id, isChecked) -> {
+            if (isChecked) saveUnits();
+        });
+    }
+
+    private void saveUnits() {
+        if (binding == null) return;
+        Prefs.setUnits(appCtx, new UnitFormat(
+                Units.Temp.values()[indexOf(binding.toggleUnitTemp, R.id.btnTempC, R.id.btnTempF)],
+                Units.Wind.values()[indexOf(binding.toggleUnitWind,
+                        R.id.btnWindKmh, R.id.btnWindMs, R.id.btnWindKn, R.id.btnWindMph)],
+                Units.Pressure.values()[indexOf(binding.toggleUnitPressure,
+                        R.id.btnPressureHpa, R.id.btnPressureMmhg, R.id.btnPressureInhg)],
+                Units.Precip.values()[indexOf(binding.toggleUnitPrecip, R.id.btnPrecipMm, R.id.btnPrecipIn)]));
+    }
+
+    private static int indexOf(MaterialButtonToggleGroup group, int... buttonIds) {
+        int checked = group.getCheckedButtonId();
+        for (int i = 0; i < buttonIds.length; i++) {
+            if (buttonIds[i] == checked) return i;
+        }
+        return 0;
     }
 
     private void setupThemeMode() {

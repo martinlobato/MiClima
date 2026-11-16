@@ -19,7 +19,7 @@ import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.databinding.ItemHourBinding;
 import martinlobato.com.ar.clima.databinding.ItemHourDayBinding;
-import martinlobato.com.ar.clima.util.Fmt;
+import martinlobato.com.ar.clima.util.UnitFormat;
 
 /**
  * Tira horizontal con todas las horas del pronóstico (desde la hora actual hasta el día 16),
@@ -34,6 +34,7 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final List<Integer> rows = new ArrayList<>();
     private Forecast forecast;
     private int nowIndex;
+    private UnitFormat units = UnitFormat.metric();
     private OnDayClickListener dayClickListener;
 
     public interface OnDayClickListener {
@@ -48,8 +49,9 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private SimpleDateFormat dayNameFmt;
     private SimpleDateFormat dayNumberFmt;
 
-    public void submit(Forecast f, int nowIndex) {
+    public void submit(Forecast f, int nowIndex, UnitFormat units) {
         this.forecast = f;
+        this.units = units;
         this.nowIndex = nowIndex;
         hourFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
         dayNameFmt = new SimpleDateFormat("EEE", Locale.getDefault());
@@ -124,13 +126,11 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         b.tvHour.setText(i == nowIndex ? ctx.getString(R.string.now) : hourFmt.format(date));
         b.ivIcon.setImageResource(WeatherCode.icon(h.code[i], h.isDay[i]));
         b.ivIcon.setContentDescription(ctx.getString(WeatherCode.description(h.code[i])));
-        b.tvTemp.setText(Fmt.temp(h.temp[i]));
-        b.tvRain.setText(Double.isNaN(h.precipProb[i]) ? ""
-                : ctx.getString(R.string.fmt_percent, Fmt.round(h.precipProb[i])));
+        b.tvTemp.setText(units.temp(h.temp[i]));
+        b.tvRain.setText(Double.isNaN(h.precipProb[i]) ? "" : UnitFormat.percent(h.precipProb[i]));
         // Sin lluvia probable el porcentaje se atenúa para que resalten las horas con lluvia.
         b.tvRain.setAlpha(h.precipProb[i] >= 20 ? 1f : 0.45f);
-        b.tvWind.setText(Double.isNaN(h.wind[i]) ? ""
-                : ctx.getString(R.string.fmt_kmh, Fmt.round(h.wind[i])));
+        b.tvWind.setText(Double.isNaN(h.wind[i]) ? "" : units.wind(h.wind[i]));
     }
 
     static final class HourHolder extends RecyclerView.ViewHolder {

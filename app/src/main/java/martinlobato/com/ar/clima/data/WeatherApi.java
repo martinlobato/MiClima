@@ -1,11 +1,6 @@
 package martinlobato.com.ar.clima.data;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /** Cliente HTTP mínimo de Open-Meteo (sin API key). Llamar siempre fuera del hilo principal. */
@@ -36,30 +31,6 @@ public final class WeatherApi {
 
     /** Devuelve el JSON crudo del pronóstico. Lanza IOException ante error de red o HTTP != 200. */
     public static String fetchForecast(double lat, double lon) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(forecastUrl(lat, lon)).openConnection();
-        try {
-            conn.setConnectTimeout(10_000);
-            conn.setReadTimeout(15_000);
-            conn.setRequestProperty("Accept", "application/json");
-            int status = conn.getResponseCode();
-            if (status != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP " + status);
-            }
-            try (InputStream in = conn.getInputStream()) {
-                return readAll(in);
-            }
-        } finally {
-            conn.disconnect();
-        }
-    }
-
-    private static String readAll(InputStream in) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buf = new byte[8192];
-        int n;
-        while ((n = in.read(buf)) != -1) {
-            out.write(buf, 0, n);
-        }
-        return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        return Http.get(forecastUrl(lat, lon));
     }
 }

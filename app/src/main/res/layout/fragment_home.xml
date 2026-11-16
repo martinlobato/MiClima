@@ -70,6 +70,15 @@
                     android:layout_marginTop="20dp"
                     app:cornerRadius="26dp" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEmptySearch"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/empty_search_action"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
             <LinearLayout

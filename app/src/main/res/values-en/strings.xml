@@ -126,13 +126,34 @@
     <string name="col_temp">Temp.</string>
     <string name="col_apparent">Feels</string>
     <string name="col_rain_prob">Rain</string>
-    <string name="col_rain_mm">mm</string>
-    <string name="col_wind">Wind\nkm/h</string>
-    <string name="col_gusts">Gusts\nkm/h</string>
+    <string name="col_wind">Wind\n%1$s</string>
+    <string name="col_gusts">Gusts\n%1$s</string>
     <string name="col_humidity">Hum.</string>
     <string name="col_dew">Dew</string>
     <string name="col_uv">UV</string>
-    <string name="col_pressure">Pressure\nhPa</string>
+    <string name="col_pressure">Pressure\n%1$s</string>
     <string name="col_cloud">Clouds</string>
-    <string name="col_visibility">Visib.\nkm</string>
+    <string name="col_visibility">Visib.\n%1$s</string>
+
+    <string name="nav_places">Places</string>
+    <string name="places_title">Places</string>
+    <string name="places_search_hint">Search city</string>
+    <string name="places_search_clear">Clear search</string>
+    <string name="places_saved_title">My places</string>
+    <string name="places_current_location">Current location</string>
+    <string name="places_current_subtitle">Follows your phone\'s location</string>
+    <string name="places_empty_hint">Search for a city to add it to your places</string>
+    <string name="places_no_results">No places found for “%1$s”</string>
+    <string name="places_search_error">Couldn\'t search. Check your internet connection.</string>
+    <string name="places_add">Add to my places</string>
+    <string name="places_delete">Remove place</string>
+    <string name="places_deleted">Removed %1$s</string>
+    <string name="action_undo">Undo</string>
+    <string name="empty_search_action">Search for a city</string>
+
+    <string name="units_setting_title">Units</string>
+    <string name="units_temp">Temperature</string>
+    <string name="units_wind">Wind</string>
+    <string name="units_pressure">Pressure</string>
+    <string name="units_precip">Rain and distance</string>
 </resources>

@@ -3,6 +3,9 @@ package martinlobato.com.ar.clima;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import martinlobato.com.ar.clima.util.UnitFormat;
+import martinlobato.com.ar.clima.util.Units;
+
 /** Acceso centralizado a las preferencias de la app. */
 public final class Prefs {
 
@@ -23,7 +26,31 @@ public final class Prefs {
     public static final String PALETTE_BLUE = "blue";
     public static final String PALETTE_CYAN = "cyan";
 
+    private static final String KEY_UNIT_TEMP = "unit_temp";
+    private static final String KEY_UNIT_WIND = "unit_wind";
+    private static final String KEY_UNIT_PRESSURE = "unit_pressure";
+    private static final String KEY_UNIT_PRECIP = "unit_precip";
+
     private Prefs() {
+    }
+
+    /** Unidades elegidas (por defecto métricas: °C, km/h, hPa, mm). */
+    public static UnitFormat units(Context context) {
+        SharedPreferences p = prefs(context);
+        return new UnitFormat(
+                Units.parse(Units.Temp.class, p.getString(KEY_UNIT_TEMP, null), Units.Temp.C),
+                Units.parse(Units.Wind.class, p.getString(KEY_UNIT_WIND, null), Units.Wind.KMH),
+                Units.parse(Units.Pressure.class, p.getString(KEY_UNIT_PRESSURE, null), Units.Pressure.HPA),
+                Units.parse(Units.Precip.class, p.getString(KEY_UNIT_PRECIP, null), Units.Precip.MM));
+    }
+
+    public static void setUnits(Context context, UnitFormat units) {
+        prefs(context).edit()
+                .putString(KEY_UNIT_TEMP, units.temp.name())
+                .putString(KEY_UNIT_WIND, units.wind.name())
+                .putString(KEY_UNIT_PRESSURE, units.pressure.name())
+                .putString(KEY_UNIT_PRECIP, units.precip.name())
+                .apply();
     }
 
     private static SharedPreferences prefs(Context context) {

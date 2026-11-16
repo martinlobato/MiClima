@@ -10,6 +10,9 @@
         <item name="colorPrimaryContainer">@color/green_token_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/green_token_on_primary_container</item>
         <item name="colorSecondary">@color/green_token_primary</item>
+        <item name="colorSecondaryContainer">@color/green_token_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/green_token_on_primary_container</item>
+        <item name="colorSurfaceContainer">@color/green_token_surface_alt</item>
         <item name="android:colorBackground">@color/green_token_bg</item>
         <item name="colorSurfaceContainerLowest">@color/green_token_bg</item>
         <item name="colorSurface">@color/green_token_surface</item>
@@ -27,6 +30,9 @@
         <item name="colorPrimaryContainer">@color/red_token_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/red_token_on_primary_container</item>
         <item name="colorSecondary">@color/red_token_primary</item>
+        <item name="colorSecondaryContainer">@color/red_token_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/red_token_on_primary_container</item>
+        <item name="colorSurfaceContainer">@color/red_token_surface_alt</item>
         <item name="android:colorBackground">@color/red_token_bg</item>
         <item name="colorSurfaceContainerLowest">@color/red_token_bg</item>
         <item name="colorSurface">@color/red_token_surface</item>
@@ -44,6 +50,9 @@
         <item name="colorPrimaryContainer">@color/blue_token_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/blue_token_on_primary_container</item>
         <item name="colorSecondary">@color/blue_token_primary</item>
+        <item name="colorSecondaryContainer">@color/blue_token_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/blue_token_on_primary_container</item>
+        <item name="colorSurfaceContainer">@color/blue_token_surface_alt</item>
         <item name="android:colorBackground">@color/blue_token_bg</item>
         <item name="colorSurfaceContainerLowest">@color/blue_token_bg</item>
         <item name="colorSurface">@color/blue_token_surface</item>
@@ -61,6 +70,9 @@
         <item name="colorPrimaryContainer">@color/cyan_token_primary_container</item>
         <item name="colorOnPrimaryContainer">@color/cyan_token_on_primary_container</item>
         <item name="colorSecondary">@color/cyan_token_primary</item>
+        <item name="colorSecondaryContainer">@color/cyan_token_primary_container</item>
+        <item name="colorOnSecondaryContainer">@color/cyan_token_on_primary_container</item>
+        <item name="colorSurfaceContainer">@color/cyan_token_surface_alt</item>
         <item name="android:colorBackground">@color/cyan_token_bg</item>
         <item name="colorSurfaceContainerLowest">@color/cyan_token_bg</item>
         <item name="colorSurface">@color/cyan_token_surface</item>

@@ -19,14 +19,21 @@ import martinlobato.com.ar.clima.Prefs;
  */
 public final class WeatherRepository {
 
-    private static final String CACHE_FILE = "forecast_cache.json";
+    /** Clave de caché de la ubicación actual del teléfono. */
+    public static final String KEY_CURRENT_LOCATION = "gps";
+
+    /** Una caché por lugar: la ubicación actual y cada lugar guardado ({@link Place#cacheKey()}). */
+    private static File cacheFile(Context context, String key) {
+        String name = KEY_CURRENT_LOCATION.equals(key) ? "forecast_cache.json" : "forecast_" + key + ".json";
+        return new File(context.getFilesDir(), name);
+    }
 
     private WeatherRepository() {
     }
 
     /** Último pronóstico guardado, o null si no hay (o si el archivo está dañado). */
-    public static Forecast loadCached(Context context) {
-        File file = new File(context.getFilesDir(), CACHE_FILE);
+    public static Forecast loadCached(Context context, String key) {
+        File file = cacheFile(context, key);
         if (!file.exists()) return null;
         try (FileInputStream in = new FileInputStream(file)) {
             byte[] data = new byte[(int) file.length()];
@@ -46,7 +53,7 @@ public final class WeatherRepository {
     }
 
     /** Baja el pronóstico (bloqueante), lo guarda en caché y lo devuelve. */
-    public static Forecast fetch(Context context, double lat, double lon, String place)
+    public static Forecast fetch(Context context, String key, double lat, double lon, String place)
             throws IOException, JSONException {
         String raw = WeatherApi.fetchForecast(lat, lon);
         long now = System.currentTimeMillis();
@@ -57,15 +64,23 @@ public final class WeatherRepository {
         wrapper.put("fetchedAt", now);
         wrapper.put("place", place == null ? JSONObject.NULL : place);
         wrapper.put("raw", raw);
-        File tmp = new File(context.getFilesDir(), CACHE_FILE + ".tmp");
+        File dest = cacheFile(context, key);
+        File tmp = new File(dest.getPath() + ".tmp");
         try (FileOutputStream out = new FileOutputStream(tmp)) {
             out.write(wrapper.toString().getBytes(StandardCharsets.UTF_8));
         }
-        File dest = new File(context.getFilesDir(), CACHE_FILE);
         if (!tmp.renameTo(dest)) {
             throw new IOException("No se pudo guardar la caché");
         }
-        Prefs.setLastPlace(context, lat, lon, place);
+        if (KEY_CURRENT_LOCATION.equals(key)) {
+            // Permite actualizar la ubicación actual aunque después no haya permiso o señal.
+            Prefs.setLastPlace(context, lat, lon, place);
+        }
         return f;
+    }
+
+    public static void deleteCache(Context context, String key) {
+        //noinspection ResultOfMethodCallIgnored
+        cacheFile(context, key).delete();
     }
 }

@@ -34,12 +34,6 @@
     <string name="label_sunset">Puesta</string>
     <string name="label_day_length">Duración del día</string>
 
-    <string name="fmt_percent" translatable="false">%1$s%%</string>
-    <string name="fmt_kmh" translatable="false">%1$s km/h</string>
-    <string name="fmt_wind_dir" translatable="false">%1$s km/h %2$s</string>
-    <string name="fmt_hpa" translatable="false">%1$s hPa</string>
-    <string name="fmt_km" translatable="false">%1$s km</string>
-    <string name="fmt_mm" translatable="false">%1$s mm</string>
     <string name="fmt_uv" translatable="false">%1$s · %2$s</string>
     <string name="fmt_day_length" translatable="false">%1$d h %2$d min</string>
 
@@ -140,15 +134,38 @@
     <string name="col_temp">Temp.</string>
     <string name="col_apparent">Sens.</string>
     <string name="col_rain_prob">Lluvia</string>
-    <string name="col_rain_mm">mm</string>
-    <string name="col_wind">Viento\nkm/h</string>
-    <string name="col_gusts">Ráf.\nkm/h</string>
+    <string name="col_wind">Viento\n%1$s</string>
+    <string name="col_gusts">Ráf.\n%1$s</string>
     <string name="col_humidity">Hum.</string>
     <string name="col_dew">Rocío</string>
     <string name="col_uv">UV</string>
-    <string name="col_pressure">Presión\nhPa</string>
+    <string name="col_pressure">Presión\n%1$s</string>
     <string name="col_cloud">Nubes</string>
-    <string name="col_visibility">Visib.\nkm</string>
+    <string name="col_visibility">Visib.\n%1$s</string>
     <string name="fmt_info" translatable="false">%1$s · %2$s</string>
     <string name="fmt_info3" translatable="false">%1$s · %2$s · %3$s</string>
+
+    <!-- Lugares -->
+    <string name="nav_places">Lugares</string>
+    <string name="places_title">Lugares</string>
+    <string name="places_search_hint">Buscar ciudad</string>
+    <string name="places_search_clear">Borrar búsqueda</string>
+    <string name="places_saved_title">Mis lugares</string>
+    <string name="places_current_location">Ubicación actual</string>
+    <string name="places_current_subtitle">Sigue la ubicación del teléfono</string>
+    <string name="places_empty_hint">Buscá una ciudad para agregarla a tus lugares</string>
+    <string name="places_no_results">No se encontraron lugares para «%1$s»</string>
+    <string name="places_search_error">No se pudo buscar. Revisá la conexión a internet.</string>
+    <string name="places_add">Agregar a mis lugares</string>
+    <string name="places_delete">Quitar lugar</string>
+    <string name="places_deleted">Se quitó %1$s</string>
+    <string name="action_undo">Deshacer</string>
+    <string name="empty_search_action">Buscar una ciudad</string>
+
+    <!-- Ajustes: unidades -->
+    <string name="units_setting_title">Unidades</string>
+    <string name="units_temp">Temperatura</string>
+    <string name="units_wind">Viento</string>
+    <string name="units_pressure">Presión</string>
+    <string name="units_precip">Lluvia y distancia</string>
 </resources>

@@ -24,9 +24,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import martinlobato.com.ar.clima.MainActivity;
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.data.Forecast;
+import martinlobato.com.ar.clima.data.Place;
+import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.FragmentHomeBinding;
@@ -35,6 +38,7 @@ import martinlobato.com.ar.clima.databinding.ItemHourBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.Fmt;
 import martinlobato.com.ar.clima.util.LocationHelper;
+import martinlobato.com.ar.clima.util.UnitFormat;
 
 /**
  * Inicio: condiciones actuales, pronóstico hora por hora de los 16 días, detalle de ahora,
@@ -49,6 +53,11 @@ public class HomeFragment extends Fragment {
     private Context appCtx;
     private Forecast forecast;
     private boolean refreshing;
+    private UnitFormat uf = UnitFormat.metric();
+    /** Lugar guardado que se está mostrando, o null si es la ubicación actual. */
+    @Nullable
+    private Place place;
+    private String cacheKey = WeatherRepository.KEY_CURRENT_LOCATION;
     private final HourlyAdapter hourlyAdapter = new HourlyAdapter();
     private LinearLayoutManager hourlyLayout;
     private ActivityResultLauncher<String> permissionLauncher;
@@ -72,6 +81,9 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         appCtx = requireContext().getApplicationContext();
+        uf = Prefs.units(appCtx);
+        place = PlaceStore.selected(appCtx);
+        cacheKey = place == null ? WeatherRepository.KEY_CURRENT_LOCATION : place.cacheKey();
 
         binding.swipeRefresh.setColorSchemeColors(
                 MaterialColors.getColor(view, androidx.appcompat.R.attr.colorPrimary));
@@ -79,7 +91,7 @@ public class HomeFragment extends Fragment {
 
         setupHourlyStrip();
 
-        BackgroundExecutor.execute(() -> WeatherRepository.loadCached(appCtx), cached -> {
+        BackgroundExecutor.execute(() -> WeatherRepository.loadCached(appCtx, cacheKey), cached -> {
             if (binding == null) return;
             if (cached != null && forecast == null) {
                 forecast = cached;
@@ -121,6 +133,12 @@ public class HomeFragment extends Fragment {
 
     private void refresh() {
         if (binding == null || refreshing) return;
+        if (place != null) {
+            // Lugar guardado: no hace falta permiso ni lectura de ubicación.
+            setRefreshing(true);
+            fetch(place.latitude, place.longitude, place.name);
+            return;
+        }
         if (!LocationHelper.hasPermission(appCtx)) {
             refreshFromSavedPlace(R.string.empty_permission_title, R.string.empty_permission_desc, true);
             return;
@@ -151,8 +169,8 @@ public class HomeFragment extends Fragment {
     private void fetch(final double lat, final double lon, @Nullable final String knownPlace) {
         BackgroundExecutor.execute(() -> {
             try {
-                String place = knownPlace != null ? knownPlace : LocationHelper.placeName(appCtx, lat, lon);
-                return WeatherRepository.fetch(appCtx, lat, lon, place);
+                String name = knownPlace != null ? knownPlace : LocationHelper.placeName(appCtx, lat, lon);
+                return WeatherRepository.fetch(appCtx, cacheKey, lat, lon, name);
             } catch (Exception e) {
                 return null;
             }
@@ -185,6 +203,13 @@ public class HomeFragment extends Fragment {
         binding.tvEmptyDesc.setText(descRes);
         binding.btnEmptyAction.setText(askPermission
                 ? R.string.empty_permission_action : R.string.action_retry);
+        // Sin permiso de ubicación igual se puede usar la app buscando una ciudad.
+        binding.btnEmptySearch.setVisibility(askPermission ? View.VISIBLE : View.GONE);
+        binding.btnEmptySearch.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openPlaces();
+            }
+        });
         binding.btnEmptyAction.setOnClickListener(v -> {
             if (askPermission) {
                 permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -226,53 +251,41 @@ public class HomeFragment extends Fragment {
                 f.fetchedAt, now, DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE)
                 .toString().toLowerCase(Locale.getDefault())));
         binding.ivCurrentIcon.setImageResource(WeatherCode.icon(code, isDay));
-        binding.tvCurrentTemp.setText(Fmt.temp(temp));
+        binding.tvCurrentTemp.setText(uf.temp(temp));
         binding.tvCondition.setText(WeatherCode.description(code));
-        binding.tvFeelsLike.setText(getString(R.string.feels_like, Fmt.temp(apparent)));
+        binding.tvFeelsLike.setText(getString(R.string.feels_like, uf.temp(apparent)));
         binding.tvHiLo.setText(getString(R.string.hi_lo,
-                Fmt.temp(d.tempMax[dayIdx]), Fmt.temp(d.tempMin[dayIdx])));
+                uf.temp(d.tempMax[dayIdx]), uf.temp(d.tempMin[dayIdx])));
 
         binding.tvHourlyTitle.setText(getString(R.string.section_hourly, d.size()));
-        hourlyAdapter.submit(f, hourIdx);
+        hourlyAdapter.submit(f, hourIdx, uf);
         hourlyLayout.scrollToPositionWithOffset(0, 0);
         binding.rvHourly.post(this::updateHourlyDayLabel);
 
         String[] compass = getResources().getStringArray(R.array.compass_points);
         String[] uvLevels = getResources().getStringArray(R.array.uv_levels);
         double uv = h.uv[hourIdx];
-        double visibilityKm = h.visibility[hourIdx] / 1000.0;
         binding.gridDetails.removeAllViews();
         addCellRow(binding.gridDetails,
-                R.string.label_feels_like, Fmt.temp(apparent),
-                R.string.label_humidity, percent(humidity));
+                R.string.label_feels_like, uf.temp(apparent),
+                R.string.label_humidity, UnitFormat.percent(humidity));
         addCellRow(binding.gridDetails,
-                R.string.label_wind, Double.isNaN(wind) ? Fmt.DASH
-                        : Double.isNaN(windDir) ? getString(R.string.fmt_kmh, Fmt.round(wind))
-                        : getString(R.string.fmt_wind_dir, Fmt.round(wind), compass[Fmt.compassIndex(windDir)]),
-                R.string.label_gusts, unit(R.string.fmt_kmh, Fmt.round(gusts), gusts));
+                R.string.label_wind, Double.isNaN(wind) || Double.isNaN(windDir) ? uf.wind(wind)
+                        : uf.wind(wind) + " " + compass[Fmt.compassIndex(windDir)],
+                R.string.label_gusts, uf.wind(gusts));
         addCellRow(binding.gridDetails,
                 R.string.label_uv, Double.isNaN(uv) ? Fmt.DASH
                         : getString(R.string.fmt_uv, Fmt.round(uv), uvLevels[Fmt.uvLevel(uv)]),
-                R.string.label_pressure, unit(R.string.fmt_hpa, Fmt.round(pressure), pressure));
+                R.string.label_pressure, uf.pressure(pressure));
         addCellRow(binding.gridDetails,
-                R.string.label_visibility, unit(R.string.fmt_km,
-                        visibilityKm >= 10 ? Fmt.round(visibilityKm) : Fmt.oneDecimal(visibilityKm), visibilityKm),
-                R.string.label_dew_point, Fmt.temp(h.dewPoint[hourIdx]));
+                R.string.label_visibility, uf.distance(h.visibility[hourIdx] / 1000.0),
+                R.string.label_dew_point, uf.temp(h.dewPoint[hourIdx]));
         addCellRow(binding.gridDetails,
-                R.string.label_cloud_cover, percent(cloud),
-                R.string.label_precip_today, unit(R.string.fmt_mm,
-                        Fmt.oneDecimal(d.precipSum[dayIdx]), d.precipSum[dayIdx]));
+                R.string.label_cloud_cover, UnitFormat.percent(cloud),
+                R.string.label_precip_today, uf.precip(d.precipSum[dayIdx]));
 
         renderDaily(f, dayIdx);
         renderSun(f, dayIdx);
-    }
-
-    private String percent(double value) {
-        return unit(R.string.fmt_percent, Fmt.round(value), value);
-    }
-
-    private String unit(int formatRes, String formatted, double raw) {
-        return Double.isNaN(raw) ? Fmt.DASH : getString(formatRes, formatted);
     }
 
     private void renderDaily(final Forecast f, int todayIdx) {
@@ -296,11 +309,10 @@ public class HomeFragment extends Fragment {
                     : dayFmt.format(new Date(d.time[i])).replace(".", ""));
             row.ivIcon.setImageResource(WeatherCode.icon(d.code[i], true));
             row.ivIcon.setContentDescription(getString(WeatherCode.description(d.code[i])));
-            row.tvRain.setText(Double.isNaN(d.precipProbMax[i]) ? ""
-                    : getString(R.string.fmt_percent, Fmt.round(d.precipProbMax[i])));
+            row.tvRain.setText(Double.isNaN(d.precipProbMax[i]) ? "" : UnitFormat.percent(d.precipProbMax[i]));
             row.tvRain.setAlpha(d.precipProbMax[i] >= 20 ? 1f : 0.45f);
-            row.tvMin.setText(Fmt.temp(d.tempMin[i]));
-            row.tvMax.setText(Fmt.temp(d.tempMax[i]));
+            row.tvMin.setText(uf.temp(d.tempMin[i]));
+            row.tvMax.setText(uf.temp(d.tempMax[i]));
             row.rangeBar.setRange(d.tempMin[i], d.tempMax[i], globalMin, globalMax);
             final long dayTime = d.time[i];
             row.dailyRoot.setOnClickListener(v -> openDay(dayTime));
