@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 4 paletas fijas sobre Material3 DayNight (sin ActionBar; usamos MaterialToolbar propia).
+         Cuando la paleta elegida es "Automático", MiClimaApp aplica Material You (Android 12+)
+         por encima de Theme.MiClima.Green como base. -->
+
+    <style name="Theme.MiClima.Green" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/green_token_primary</item>
+        <item name="colorOnPrimary">@color/green_token_on_primary</item>
+        <item name="colorPrimaryContainer">@color/green_token_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/green_token_on_primary_container</item>
+        <item name="colorSecondary">@color/green_token_primary</item>
+        <item name="android:colorBackground">@color/green_token_bg</item>
+        <item name="colorSurfaceContainerLowest">@color/green_token_bg</item>
+        <item name="colorSurface">@color/green_token_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/green_token_surface_alt</item>
+        <item name="colorOnSurface">@color/green_token_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/green_token_on_surface_variant</item>
+        <item name="colorOutlineVariant">@color/green_token_outline</item>
+        <item name="colorError">@color/danger</item>
+        <item name="colorOnError">@color/on_danger</item>
+    </style>
+
+    <style name="Theme.MiClima.Red" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/red_token_primary</item>
+        <item name="colorOnPrimary">@color/red_token_on_primary</item>
+        <item name="colorPrimaryContainer">@color/red_token_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/red_token_on_primary_container</item>
+        <item name="colorSecondary">@color/red_token_primary</item>
+        <item name="android:colorBackground">@color/red_token_bg</item>
+        <item name="colorSurfaceContainerLowest">@color/red_token_bg</item>
+        <item name="colorSurface">@color/red_token_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/red_token_surface_alt</item>
+        <item name="colorOnSurface">@color/red_token_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/red_token_on_surface_variant</item>
+        <item name="colorOutlineVariant">@color/red_token_outline</item>
+        <item name="colorError">@color/danger</item>
+        <item name="colorOnError">@color/on_danger</item>
+    </style>
+
+    <style name="Theme.MiClima.Blue" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/blue_token_primary</item>
+        <item name="colorOnPrimary">@color/blue_token_on_primary</item>
+        <item name="colorPrimaryContainer">@color/blue_token_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/blue_token_on_primary_container</item>
+        <item name="colorSecondary">@color/blue_token_primary</item>
+        <item name="android:colorBackground">@color/blue_token_bg</item>
+        <item name="colorSurfaceContainerLowest">@color/blue_token_bg</item>
+        <item name="colorSurface">@color/blue_token_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/blue_token_surface_alt</item>
+        <item name="colorOnSurface">@color/blue_token_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/blue_token_on_surface_variant</item>
+        <item name="colorOutlineVariant">@color/blue_token_outline</item>
+        <item name="colorError">@color/danger</item>
+        <item name="colorOnError">@color/on_danger</item>
+    </style>
+
+    <style name="Theme.MiClima.Cyan" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/cyan_token_primary</item>
+        <item name="colorOnPrimary">@color/cyan_token_on_primary</item>
+        <item name="colorPrimaryContainer">@color/cyan_token_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/cyan_token_on_primary_container</item>
+        <item name="colorSecondary">@color/cyan_token_primary</item>
+        <item name="android:colorBackground">@color/cyan_token_bg</item>
+        <item name="colorSurfaceContainerLowest">@color/cyan_token_bg</item>
+        <item name="colorSurface">@color/cyan_token_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/cyan_token_surface_alt</item>
+        <item name="colorOnSurface">@color/cyan_token_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/cyan_token_on_surface_variant</item>
+        <item name="colorOutlineVariant">@color/cyan_token_outline</item>
+        <item name="colorError">@color/danger</item>
+        <item name="colorOnError">@color/on_danger</item>
+    </style>
+
+    <!-- Sin esto, el ítem seleccionado del bottom nav muestra un "pill" de fondo
+         colorSecondaryContainer (no definido por paleta, sale con un color genérico).
+         No existe un atributo XML directo para ese color en el propio BottomNavigationView;
+         se anula acá vía el estilo del indicador. -->
+    <style name="Widget.MiClima.BottomNavigationView.ActiveIndicator"
+        parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+</resources>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mi Clima</string>
+
+    <string name="nav_home">Clima</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="settings_title">Ajustes</string>
+
+    <!-- Inicio -->
+    <string name="place_unknown">Mi ubicación</string>
+    <string name="status_updated">Actualizado %1$s · Open-Meteo</string>
+    <string name="feels_like">Sensación %1$s</string>
+    <string name="hi_lo">Máx %1$s · Mín %2$s</string>
+    <string name="section_hourly">Por hora · %1$d días</string>
+    <string name="section_details">Ahora</string>
+    <string name="section_daily">Próximos %1$d días</string>
+    <string name="section_sun">Sol</string>
+    <string name="now">Ahora</string>
+    <string name="today">Hoy</string>
+    <string name="tomorrow">Mañana</string>
+    <string name="attribution">Datos meteorológicos: Open-Meteo.com (CC BY 4.0)</string>
+
+    <string name="label_feels_like">Sensación</string>
+    <string name="label_humidity">Humedad</string>
+    <string name="label_wind">Viento</string>
+    <string name="label_gusts">Ráfagas</string>
+    <string name="label_uv">Índice UV</string>
+    <string name="label_pressure">Presión</string>
+    <string name="label_visibility">Visibilidad</string>
+    <string name="label_dew_point">Punto de rocío</string>
+    <string name="label_cloud_cover">Nubosidad</string>
+    <string name="label_precip_today">Lluvia hoy</string>
+    <string name="label_sunrise">Salida</string>
+    <string name="label_sunset">Puesta</string>
+    <string name="label_day_length">Duración del día</string>
+
+    <string name="fmt_percent" translatable="false">%1$s%%</string>
+    <string name="fmt_kmh" translatable="false">%1$s km/h</string>
+    <string name="fmt_wind_dir" translatable="false">%1$s km/h %2$s</string>
+    <string name="fmt_hpa" translatable="false">%1$s hPa</string>
+    <string name="fmt_km" translatable="false">%1$s km</string>
+    <string name="fmt_mm" translatable="false">%1$s mm</string>
+    <string name="fmt_uv" translatable="false">%1$s · %2$s</string>
+    <string name="fmt_day_length" translatable="false">%1$d h %2$d min</string>
+
+    <string-array name="compass_points">
+        <item>N</item>
+        <item>NE</item>
+        <item>E</item>
+        <item>SE</item>
+        <item>S</item>
+        <item>SO</item>
+        <item>O</item>
+        <item>NO</item>
+    </string-array>
+
+    <string-array name="uv_levels">
+        <item>Bajo</item>
+        <item>Moderado</item>
+        <item>Alto</item>
+        <item>Muy alto</item>
+        <item>Extremo</item>
+    </string-array>
+
+    <!-- Estados -->
+    <string name="empty_permission_title">Necesito tu ubicación</string>
+    <string name="empty_permission_desc">Mi Clima usa la ubicación aproximada para mostrarte el pronóstico del lugar donde estás.</string>
+    <string name="empty_permission_action">Permitir ubicación</string>
+    <string name="empty_error_title">No se pudo cargar el clima</string>
+    <string name="empty_error_desc">Revisá la conexión a internet y volvé a intentar.</string>
+    <string name="empty_location_desc">No se pudo obtener tu ubicación. Activá la ubicación del teléfono y volvé a intentar.</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="error_refresh">No se pudo actualizar. Se muestra el último dato guardado.</string>
+
+    <!-- Descripciones del clima (códigos WMO) -->
+    <string name="wx_unknown">Sin datos</string>
+    <string name="wx_clear">Despejado</string>
+    <string name="wx_mainly_clear">Mayormente despejado</string>
+    <string name="wx_partly_cloudy">Parcialmente nublado</string>
+    <string name="wx_overcast">Nublado</string>
+    <string name="wx_fog">Niebla</string>
+    <string name="wx_drizzle">Llovizna</string>
+    <string name="wx_freezing_drizzle">Llovizna helada</string>
+    <string name="wx_rain_light">Lluvia débil</string>
+    <string name="wx_rain">Lluvia</string>
+    <string name="wx_rain_heavy">Lluvia fuerte</string>
+    <string name="wx_freezing_rain">Lluvia helada</string>
+    <string name="wx_snow_light">Nevada débil</string>
+    <string name="wx_snow">Nevada</string>
+    <string name="wx_snow_heavy">Nevada fuerte</string>
+    <string name="wx_snow_grains">Granos de nieve</string>
+    <string name="wx_showers">Chaparrones</string>
+    <string name="wx_showers_heavy">Chaparrones fuertes</string>
+    <string name="wx_snow_showers">Chaparrones de nieve</string>
+    <string name="wx_thunderstorm">Tormenta eléctrica</string>
+    <string name="wx_thunderstorm_hail">Tormenta con granizo</string>
+
+    <!-- Ajustes: tema -->
+    <string name="theme_setting_title">Tema</string>
+    <string name="theme_mode_label">Modo</string>
+    <string name="theme_mode_system">Sistema</string>
+    <string name="theme_mode_light">Claro</string>
+    <string name="theme_mode_dark">Oscuro</string>
+    <string name="theme_palette_label">Paleta de color</string>
+    <string name="theme_palette_auto">Automático</string>
+    <string name="theme_palette_green">Verde</string>
+    <string name="theme_palette_red">Rojo</string>
+    <string name="theme_palette_blue">Azul</string>
+    <string name="theme_palette_cyan">Celeste</string>
+    <string name="theme_palette_auto_unavailable">El color automático (Material You) requiere Android 12 o superior.</string>
+    <string name="about_title">Datos</string>
+</resources>

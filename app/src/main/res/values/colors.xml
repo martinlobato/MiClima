@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ícono de la app (fijo, independiente del tema elegido en Configuración). -->
+    <color name="primary">#1565C0</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta Verde -->
+    <color name="green_primary">#2E7D32</color>
+    <color name="green_primary_dark">#1B5E20</color>
+
+    <!-- Paleta Roja -->
+    <color name="red_primary">#C62828</color>
+    <color name="red_primary_dark">#8E0000</color>
+
+    <!-- Paleta Azul -->
+    <color name="blue_primary">#1565C0</color>
+    <color name="blue_primary_dark">#0D47A1</color>
+
+    <!-- Paleta Celeste -->
+    <color name="cyan_primary">#0097A7</color>
+    <color name="cyan_primary_dark">#006064</color>
+
+    <!-- Escala tonal del rediseño (modo claro). Cada paleta define un hue OKLCH único; estos
+         valores son la conversión OKLCH→sRGB exacta de las fórmulas del handoff de diseño
+         (design-v2/design_handoff_MyLoc_redesign), no colores elegidos a mano. -->
+    <color name="blue_token_bg">#f8fafd</color>
+    <color name="blue_token_surface">#fdfeff</color>
+    <color name="blue_token_surface_alt">#e9f1f9</color>
+    <color name="blue_token_on_surface">#141b24</color>
+    <color name="blue_token_on_surface_variant">#535c66</color>
+    <color name="blue_token_outline">#ced5dd</color>
+    <color name="blue_token_primary">#005fad</color>
+    <color name="blue_token_on_primary">#fcfcfc</color>
+    <color name="blue_token_primary_container">#c4e5ff</color>
+    <color name="blue_token_on_primary_container">#002d62</color>
+
+    <color name="green_token_bg">#f9fbf8</color>
+    <color name="green_token_surface">#fdfefd</color>
+    <color name="green_token_surface_alt">#ebf3ea</color>
+    <color name="green_token_on_surface">#151d14</color>
+    <color name="green_token_on_surface_variant">#555e53</color>
+    <color name="green_token_outline">#cfd7ce</color>
+    <color name="green_token_primary">#197112</color>
+    <color name="green_token_on_primary">#fcfcfc</color>
+    <color name="green_token_primary_container">#cbecc7</color>
+    <color name="green_token_on_primary_container">#003a00</color>
+
+    <color name="red_token_bg">#fdf9f9</color>
+    <color name="red_token_surface">#fffefd</color>
+    <color name="red_token_surface_alt">#faedec</color>
+    <color name="red_token_on_surface">#231716</color>
+    <color name="red_token_on_surface_variant">#665756</color>
+    <color name="red_token_outline">#ddd1d0</color>
+    <color name="red_token_primary">#a12f35</color>
+    <color name="red_token_on_primary">#fcfcfc</color>
+    <color name="red_token_primary_container">#ffd2cf</color>
+    <color name="red_token_on_primary_container">#590912</color>
+
+    <color name="cyan_token_bg">#f7fbfb</color>
+    <color name="cyan_token_surface">#fdfeff</color>
+    <color name="cyan_token_surface_alt">#e6f3f4</color>
+    <color name="cyan_token_on_surface">#0f1d1e</color>
+    <color name="cyan_token_on_surface_variant">#4e5e5f</color>
+    <color name="cyan_token_outline">#cad7d8</color>
+    <color name="cyan_token_primary">#00747f</color>
+    <color name="cyan_token_on_primary">#fcfcfc</color>
+    <color name="cyan_token_primary_container">#b3eef1</color>
+    <color name="cyan_token_on_primary_container">#003c43</color>
+
+    <color name="danger">#b32228</color>
+    <color name="on_danger">#ffffff</color>
+
+    <!-- Violeta representativo del swatch "Automático" en el selector de paleta (no es un
+         tema real, Automático sigue disparando Material You dinámico). -->
+    <color name="auto_palette_swatch">#6750A4</color>
+</resources>
