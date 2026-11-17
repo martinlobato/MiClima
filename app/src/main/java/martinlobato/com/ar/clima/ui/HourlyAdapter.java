@@ -176,7 +176,11 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         b.tvRain.setText(Double.isNaN(h.precipProb[i]) ? "" : UnitFormat.percent(h.precipProb[i]));
         // Sin lluvia probable el porcentaje se atenúa; con lluvia muy probable, en negrita.
         double p = h.precipProb[i];
-        b.tvRain.setAlpha(p >= 20 ? 1f : 0.4f);
+        // Bajo 20 % va en gris secundario (no transparente, para mantener el contraste).
+        b.tvRain.setTextColor(p >= 20
+                ? androidx.core.content.ContextCompat.getColor(ctx, R.color.wx_rain)
+                : com.google.android.material.color.MaterialColors.getColor(b.tvRain,
+                        com.google.android.material.R.attr.colorOnSurfaceVariant));
         b.tvRain.setTypeface(null, p >= 60 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         b.tvWind.setText(Double.isNaN(h.wind[i]) ? "" : units.wind(h.wind[i]));
     }

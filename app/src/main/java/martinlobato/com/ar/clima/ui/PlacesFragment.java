@@ -203,6 +203,7 @@ public class PlacesFragment extends Fragment {
         binding.tvPlacesHint.setVisibility(places.isEmpty() ? View.VISIBLE : View.GONE);
 
         final Map<String, ItemPlaceBinding> rows = new HashMap<>();
+        final Map<String, Place> byKey = new HashMap<>();
 
         ItemPlaceBinding current = ItemPlaceBinding.inflate(getLayoutInflater(), binding.listPlaces, false);
         current.ivPlaceIcon.setVisibility(View.VISIBLE);
@@ -230,6 +231,7 @@ public class PlacesFragment extends Fragment {
             showMapButton(row, place.latitude, place.longitude, place.name);
             binding.listPlaces.addView(row.getRoot());
             rows.put(place.cacheKey(), row);
+            byKey.put(place.cacheKey(), place);
         }
 
         // Temperatura actual de cada lugar, tomada de su caché (sin red).
@@ -253,6 +255,8 @@ public class PlacesFragment extends Fragment {
                 row.tvPlaceTemp.setVisibility(View.VISIBLE);
                 row.tvPlaceHiLo.setText(R.string.place_no_data);
                 row.tvPlaceHiLo.setVisibility(View.VISIBLE);
+                Place place = byKey.get(e.getKey());
+                if (place != null) fetchMissing(place);
             }
             for (Map.Entry<String, Forecast> e : cached.entrySet()) {
                 ItemPlaceBinding row = rows.get(e.getKey());
@@ -352,6 +356,26 @@ public class PlacesFragment extends Fragment {
                     if (binding != null) renderPlaces();
                 })
                 .show();
+    }
+
+    /** Se pone en false en los tests para no salir a la red. */
+    public static boolean fetchMissingPlaces = true;
+    /** Lugares cuya descarga ya se intentó en esta pantalla (para no reintentar en bucle). */
+    private final java.util.Set<String> fetchAttempted = new java.util.HashSet<>();
+
+    /** Baja el clima de un lugar guardado que no tiene datos y vuelve a dibujar la lista. */
+    private void fetchMissing(final Place place) {
+        if (!fetchMissingPlaces || !fetchAttempted.add(place.cacheKey())) return;
+        BackgroundExecutor.execute(() -> {
+            try {
+                return WeatherRepository.fetch(appCtx, place.cacheKey(), place.latitude,
+                        place.longitude, place.name) != null;
+            } catch (Exception e) {
+                return false; // sin red: queda "Sin datos todavía"
+            }
+        }, ok -> {
+            if (ok && binding != null) renderPlaces();
+        });
     }
 
     private void hideKeyboard() {

@@ -386,6 +386,7 @@ public class HomeFragment extends Fragment {
         r[1].gauge.set(GaugeView.Mode.GLASS, d.precipSum[dayIdx] / 20, rainColor);
 
         renderRainSoon(f, hourIdx);
+        renderHighlights(f, now, hourIdx);
         renderNormal();
         loadNormals();
         renderBest(f, now);
@@ -810,6 +811,67 @@ public class HomeFragment extends Fragment {
         binding.cardRainSoon.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Aviso arriba de todo con lo importante del día: lluvia en las próximas 6 h (o lloviendo
+     * ahora) y las alertas de las próximas 24 h con los umbrales de Ajustes. Se muestra aunque
+     * las notificaciones estén apagadas; oculto si no hay nada.
+     */
+    private void renderHighlights(Forecast f, long now, int hourIdx) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        SimpleDateFormat hourFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        hourFmt.setTimeZone(f.timeZone());
+        SimpleDateFormat whenFmt = new SimpleDateFormat("EEE HH:mm", Locale.getDefault());
+        whenFmt.setTimeZone(f.timeZone());
+        Forecast.Hourly h = f.hourly;
+        if (h.precipProb[hourIdx] >= 60 || h.precip[hourIdx] >= 0.5) {
+            lines.add(getString(R.string.highlight_rain_now));
+        } else {
+            martinlobato.com.ar.clima.data.RainAlert.Event rain =
+                    martinlobato.com.ar.clima.data.RainAlert.find(f, now);
+            if (rain != null) {
+                lines.add(getString(R.string.highlight_rain_at, hourFmt.format(new Date(rain.time)),
+                        Double.isNaN(rain.probability) ? uf.precip(rain.precipitation)
+                                : UnitFormat.percent(rain.probability)));
+            }
+        }
+        martinlobato.com.ar.clima.data.WeatherAlerts.Type[] types =
+                martinlobato.com.ar.clima.data.WeatherAlerts.Type.values();
+        boolean[] enabled = new boolean[types.length];
+        double[] thresholds = new double[types.length];
+        for (martinlobato.com.ar.clima.data.WeatherAlerts.Type t : types) {
+            enabled[t.ordinal()] = true;
+            thresholds[t.ordinal()] = Prefs.getAlertThreshold(appCtx, t);
+        }
+        for (martinlobato.com.ar.clima.data.WeatherAlerts.Alert a
+                : martinlobato.com.ar.clima.data.WeatherAlerts.evaluate(f, now, enabled, thresholds)) {
+            String when = a.time <= now + DateUtils.HOUR_IN_MILLIS ? getString(R.string.highlight_now)
+                    : f.sameLocalDay(a.time, now) ? hourFmt.format(new Date(a.time))
+                    : whenFmt.format(new Date(a.time)).replace(".", "");
+            lines.add(getString(R.string.highlight_alert, getString(ALERT_TITLES[a.type.ordinal()]),
+                    martinlobato.com.ar.clima.work.AlertNotifier.formatValue(appCtx, a.type, a.extreme), when));
+        }
+        binding.listHighlights.removeAllViews();
+        if (lines.isEmpty()) {
+            binding.cardHighlights.setVisibility(View.GONE);
+            return;
+        }
+        int color = ContextCompat.getColor(requireContext(), R.color.highlight_text);
+        float density = getResources().getDisplayMetrics().density;
+        for (int i = 0; i < lines.size(); i++) {
+            android.widget.TextView tv = new android.widget.TextView(requireContext());
+            tv.setText(lines.get(i));
+            tv.setTextColor(color);
+            tv.setTextSize(14.5f);
+            tv.setTypeface(null, android.graphics.Typeface.BOLD);
+            if (i > 0) tv.setPadding(0, Math.round(6 * density), 0, 0);
+            binding.listHighlights.addView(tv);
+        }
+        binding.cardHighlights.setVisibility(View.VISIBLE);
+    }
+
+    private static final int[] ALERT_TITLES = {R.string.alert_frost_title, R.string.alert_heat_title,
+            R.string.alert_wind_title, R.string.alert_uv_title, R.string.alert_air_title};
+
     private void renderDaily(final Forecast f, int todayIdx) {
         Forecast.Daily d = f.daily;
         binding.tvDailyTitle.setText(getString(R.string.section_daily, d.size() - todayIdx));
@@ -836,6 +898,10 @@ public class HomeFragment extends Fragment {
             row.tvMax.setText(uf.temp(d.tempMax[i]));
             row.rangeBar.setRange(d.tempMin[i], d.tempMax[i], globalMin, globalMax);
             row.rangeBar.setColors(TempColors.forCelsius(d.tempMin[i]), TempColors.forCelsius(d.tempMax[i]));
+            // En "Hoy" un punto marca la temperatura de ahora entre la mínima y la máxima.
+            if (i == todayIdx) {
+                row.rangeBar.setMarker(f.hourly.temp[f.hourIndexAt(System.currentTimeMillis())], globalMin, globalMax);
+            }
             final long dayTime = d.time[i];
             row.dailyRoot.setOnClickListener(v -> openDay(dayTime));
             binding.listDaily.addView(row.getRoot());

@@ -89,4 +89,6 @@
     <color name="wx_bolt">#EE9B00</color>
     <color name="snow_rock">#8C857C</color>
     <color name="snow_cap">#DCE9F5</color>
+    <color name="highlight_bg">#FFF3D6</color>
+    <color name="highlight_text">#3D2C00</color>
 </resources>

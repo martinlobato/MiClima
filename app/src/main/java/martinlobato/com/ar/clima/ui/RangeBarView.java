@@ -25,6 +25,10 @@ public class RangeBarView extends View {
     private int startColor;
     private int endColor;
     private boolean gradient;
+    /** Posición 0..1 del punto de "ahora" en la barra, o NaN si no se marca. */
+    private float marker = Float.NaN;
+    private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint markerRing = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     public RangeBarView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -54,16 +58,27 @@ public class RangeBarView extends View {
         invalidate();
     }
 
+    /** Marca con un punto el valor actual dentro del rango global (fila "Hoy"). */
+    public void setMarker(double value, double globalMin, double globalMax) {
+        double span = globalMax - globalMin;
+        marker = Double.isNaN(value) || !(span > 0) ? Float.NaN : clamp((float) ((value - globalMin) / span));
+        markerPaint.setColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface));
+        markerRing.setColor(MaterialColors.getColor(this, com.google.android.material.R.attr.colorSurface));
+        invalidate();
+    }
+
     private static float clamp(float v) {
         return Math.max(0f, Math.min(1f, v));
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+        // La barra tiene 6 dp de alto centrada; el resto del alto deja lugar al punto de "ahora".
         float w = getWidth();
-        float h = getHeight();
+        float h = Math.min(getHeight(), 6 * getResources().getDisplayMetrics().density);
+        float top = (getHeight() - h) / 2f;
         float r = h / 2f;
-        rect.set(0, 0, w, h);
+        rect.set(0, top, w, top + h);
         canvas.drawRoundRect(rect, r, r, trackPaint);
         if (end <= 0f && start <= 0f) return;
         float left = start * w;
@@ -76,9 +91,9 @@ public class RangeBarView extends View {
         }
         boolean rtl = getLayoutDirection() == LAYOUT_DIRECTION_RTL;
         if (rtl) {
-            rect.set(w - right, 0, w - left, h);
+            rect.set(w - right, top, w - left, top + h);
         } else {
-            rect.set(left, 0, right, h);
+            rect.set(left, top, right, top + h);
         }
         if (gradient) {
             barPaint.setShader(new android.graphics.LinearGradient(rect.left, 0, rect.right, 0,
@@ -87,5 +102,13 @@ public class RangeBarView extends View {
         }
         canvas.drawRoundRect(rect, r, r, barPaint);
         barPaint.setShader(null);
+        if (!Float.isNaN(marker)) {
+            float cy = getHeight() / 2f;
+            float ring = Math.min(getHeight() / 2f, h * 1.05f);
+            float x = rtl ? w * (1 - marker) : w * marker;
+            x = Math.max(ring, Math.min(w - ring, x));
+            canvas.drawCircle(x, cy, ring, markerRing);
+            canvas.drawCircle(x, cy, ring * 0.62f, markerPaint);
+        }
     }
 }

@@ -71,11 +71,15 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   `ui/PlacesActivity` (la búsqueda con el buscador enfocado). Al volver de Ajustes la pantalla se
   recrea; al volver de Lugares se rearman las páginas. Las vistas que se desplazan en horizontal
   dentro de una página (tira horaria, chips) van envueltas en `ui/NestedScrollableHost`.
-- `ui/HomeFragment.newInstance(placeId)`, en este orden: tarjeta actual, "Lluvia · próximas 24 h"
+- `ui/HomeFragment.newInstance(placeId)`, en este orden: tarjeta actual, aviso del día
+  (`cardHighlights`, color ámbar: lluvia ahora o en las próximas 6 h con `RainAlert` y las alertas
+  de las próximas 24 h con `WeatherAlerts` y los umbrales de Ajustes, aunque las notificaciones
+  estén apagadas; oculto si no hay nada), "Lluvia · próximas 24 h"
   (`RainBarsView`, barras de probabilidad más intensas cuantos más mm, con un resumen), tira horaria
   de 16 días (`HourlyAdapter`, con fichas separadoras por día, rótulo del día visible y la línea de
   temperatura `TempLineView`: cada ficha dibuja su tramo con el rango de su día), lista de días
-  (`RangeBarView` con degradé de `TempColors`; % de lluvia solo desde 20 %, en negrita desde 60 %;
+  (`RangeBarView` con degradé de `TempColors` y, en "Hoy", un punto con la temperatura de ahora;
+  % de lluvia solo desde 20 %, en negrita desde 60 %;
   tocar un día, o una ficha de día en la tira, abre su detalle), grilla "Ahora", mejor momento,
   aire, nieve, mar, sol y luna.
 - Gráficos de Inicio, todos Canvas propio: cada celda de la grilla "Ahora" y del aire lleva un
@@ -108,7 +112,11 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - `ui/PlacesFragment` (en `PlacesActivity`): búsqueda con demora de 500 ms, resultados para
   agregar y lista de lugares con clima actual, máx/mín de hoy y hora local (de la caché), botón
   "Ver en Google Maps" (intent `geo:` a Google Maps, con respaldo a otra app o a la web) y quitar
-  con deshacer. Elegir un lugar cierra la pantalla e Inicio abre su página.
+  con deshacer. Elegir un lugar cierra la pantalla e Inicio abre su página. Un lugar guardado sin
+  caché vigente muestra "Sin datos todavía" y se baja en el momento (una vez por pantalla;
+  `PlacesFragment.fetchMissingPlaces` se apaga en los tests para no salir a la red).
+- Contraste: el texto chico (etiquetas de celdas, viento y % de la tira) va a 12 sp y nunca se
+  atenúa con transparencia; lo poco importante va en `colorOnSurfaceVariant` (≥ 6:1).
 - `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo, paleta,
   modelo meteorológico y frecuencia de actualización en segundo plano.
 - Widgets (`widget/WeatherWidgetProvider.Kind`): FULL 4×2 (clima actual + 5 casillas cada 3 h),

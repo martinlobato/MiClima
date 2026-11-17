@@ -52,6 +52,8 @@ public class PlacesScreenTest {
 
     @Before
     public void setUp() throws Exception {
+        // Sin red en los tests: los lugares sin caché quedan con "Sin datos todavía".
+        martinlobato.com.ar.clima.ui.PlacesFragment.fetchMissingPlaces = false;
         ctx = ApplicationProvider.getApplicationContext();
         Prefs.setThemeMode(ctx, Prefs.THEME_MODE_LIGHT);
         Prefs.setThemePalette(ctx, Prefs.PALETTE_CYAN);

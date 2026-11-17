@@ -257,6 +257,29 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Avisos del día: alertas, UV muy alto o lluvia en las próximas horas -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardHighlights"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/highlight_bg"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:id="@+id/listHighlights"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="12dp" />
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Lluvia en las próximas horas -->
                 <TextView
                     android:layout_width="wrap_content"

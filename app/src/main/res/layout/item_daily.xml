@@ -48,7 +48,7 @@
     <martinlobato.com.ar.clima.ui.RangeBarView
         android:id="@+id/rangeBar"
         android:layout_width="0dp"
-        android:layout_height="6dp"
+        android:layout_height="14dp"
         android:layout_marginHorizontal="10dp"
         android:layout_weight="1" />
 

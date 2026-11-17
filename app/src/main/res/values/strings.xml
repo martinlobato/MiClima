@@ -378,4 +378,8 @@
     <string name="fmt_sunrise_short">☀ Sale %1$s</string>
     <string name="fmt_sunset_short">Se pone %1$s</string>
     <string name="fmt_moon_times">Sale %1$s · se pone %2$s</string>
+    <string name="highlight_rain_now">💧 Está lloviendo</string>
+    <string name="highlight_rain_at">💧 Lluvia desde las %1$s (%2$s)</string>
+    <string name="highlight_alert">⚠ %1$s: hasta %2$s, desde %3$s</string>
+    <string name="highlight_now">ahora</string>
 </resources>

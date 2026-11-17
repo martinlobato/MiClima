@@ -45,7 +45,7 @@
         android:layout_marginTop="6dp"
         android:maxLines="1"
         android:textColor="@color/wx_rain"
-        android:textSize="11.5sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <TextView
@@ -55,6 +55,6 @@
         android:layout_marginTop="3dp"
         android:maxLines="1"
         android:textColor="?attr/colorOnSurfaceVariant"
-        android:textSize="11sp" />
+        android:textSize="12sp" />
 
 </LinearLayout>

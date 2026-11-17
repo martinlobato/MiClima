@@ -63,7 +63,7 @@ public final class AlertNotifier {
     }
 
     /** Texto del valor extremo en las unidades elegidas. */
-    static String formatValue(Context context, WeatherAlerts.Type type, double value) {
+    public static String formatValue(Context context, WeatherAlerts.Type type, double value) {
         UnitFormat uf = Prefs.units(context);
         switch (type) {
             case FROST:
