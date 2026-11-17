@@ -74,6 +74,11 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - `ui/HomeFragment.newInstance(placeId)`: tarjeta actual, tira horaria de 16 días (`HourlyAdapter`, con fichas
   separadoras por día y rótulo del día visible), grilla "Ahora", lista de días con `RangeBarView`
   (tocar un día, o una ficha de día en la tira, abre su detalle) y tarjeta de sol.
+- Sol y luna en Inicio son gráficos: `ui/SunArcView` (onda de las 24 h que cruza el horizonte en
+  la salida y la puesta, tramo recorrido en amarillo y el sol en la hora actual) con salida y
+  atardecer grandes, más duración del día y UV en celdas; `ui/MoonPhaseView` (disco con la parte
+  iluminada según `Moon.Phase.cycle`, espejado en el hemisferio sur) con fase, % iluminado y
+  salida/puesta ordenadas según cuál ocurre primero.
 - `ui/DayDetailActivity`: detalle de un día sobre la caché (sin red). Resumen, chips de variable
   (temperatura, lluvia, viento, UV, humedad, presión), gráfico `HourlyChartView` (Canvas propio:
   línea con área o barras, serie secundaria punteada, selección al tocar/arrastrar; la escala

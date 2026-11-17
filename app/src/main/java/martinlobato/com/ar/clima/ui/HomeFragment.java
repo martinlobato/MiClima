@@ -575,15 +575,21 @@ public class HomeFragment extends Fragment {
         Moon.Times times = Moon.times(f.daily.time[dayIdx], f.latitude, f.longitude);
         SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
         timeFmt.setTimeZone(f.timeZone());
-        binding.gridMoon.removeAllViews();
-        addCellRow(binding.gridMoon,
-                R.string.label_moon_phase, getResources().getStringArray(R.array.moon_phases)[phase.index()],
-                R.string.label_moon_illumination, UnitFormat.percent(phase.illumination * 100));
-        addCellRow(binding.gridMoon,
-                R.string.label_moonrise, times.rise > 0 ? timeFmt.format(new Date(times.rise))
-                        : getString(R.string.moon_no_event),
-                R.string.label_moonset, times.set > 0 ? timeFmt.format(new Date(times.set))
-                        : getString(R.string.moon_no_event));
+        binding.moonPhase.setPhase(phase.cycle, f.latitude);
+        String name = getResources().getStringArray(R.array.moon_phases)[phase.index()];
+        binding.tvMoonPhase.setText(name);
+        binding.tvMoonIllumination.setText(getString(R.string.fmt_moon_illuminated,
+                UnitFormat.percent(phase.illumination * 100)));
+        binding.moonPhase.setContentDescription(name);
+
+        // Primero el evento que ocurre antes en el día (como en el reloj).
+        String rise = times.rise > 0 ? timeFmt.format(new Date(times.rise)) : getString(R.string.moon_no_event);
+        String set = times.set > 0 ? timeFmt.format(new Date(times.set)) : getString(R.string.moon_no_event);
+        boolean setFirst = times.set > 0 && (times.rise <= 0 || times.set < times.rise);
+        binding.tvMoonFirstLabel.setText(setFirst ? R.string.label_moonset_long : R.string.label_moonrise_long);
+        binding.tvMoonFirst.setText(setFirst ? set : rise);
+        binding.tvMoonSecondLabel.setText(setFirst ? R.string.label_moonrise_long : R.string.label_moonset_long);
+        binding.tvMoonSecond.setText(setFirst ? rise : set);
     }
 
     /** "Máxima de hoy 3° sobre lo normal para la fecha (24°)"; oculto si aún no hay normales. */
@@ -744,10 +750,11 @@ public class HomeFragment extends Fragment {
         boolean valid = sunrise > 0 && sunset > sunrise;
         long minutes = valid ? (sunset - sunrise) / DateUtils.MINUTE_IN_MILLIS : 0;
 
+        binding.sunArc.setDay(f.daily.time[dayIdx], sunrise, sunset, System.currentTimeMillis());
+        binding.tvSunrise.setText(valid ? timeFmt.format(new Date(sunrise)) : Fmt.DASH);
+        binding.tvSunset.setText(valid ? timeFmt.format(new Date(sunset)) : Fmt.DASH);
+
         binding.gridSun.removeAllViews();
-        addCellRow(binding.gridSun,
-                R.string.label_sunrise, valid ? timeFmt.format(new Date(sunrise)) : Fmt.DASH,
-                R.string.label_sunset, valid ? timeFmt.format(new Date(sunset)) : Fmt.DASH);
         addCellRow(binding.gridSun,
                 R.string.label_day_length, valid
                         ? getString(R.string.fmt_day_length, (int) (minutes / 60), (int) (minutes % 60))

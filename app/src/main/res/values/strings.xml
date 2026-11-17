@@ -290,6 +290,11 @@
 
     <!-- Luna -->
     <string name="section_moon">Luna</string>
+    <string name="label_sunrise_long">Salida del sol</string>
+    <string name="label_sunset_long">Atardecer</string>
+    <string name="label_moonrise_long">Salida de la luna</string>
+    <string name="label_moonset_long">Puesta de la luna</string>
+    <string name="fmt_moon_illuminated">%1$s iluminada</string>
     <string name="label_moon_phase">Fase</string>
     <string name="label_moon_illumination">Iluminada</string>
     <string name="label_moonrise">Salida</string>

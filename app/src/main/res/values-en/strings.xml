@@ -264,6 +264,11 @@
     <string name="label_waves_max">Max waves today</string>
 
     <string name="section_moon">Moon</string>
+    <string name="label_sunrise_long">Sunrise</string>
+    <string name="label_sunset_long">Sunset</string>
+    <string name="label_moonrise_long">Moonrise</string>
+    <string name="label_moonset_long">Moonset</string>
+    <string name="fmt_moon_illuminated">%1$s illuminated</string>
     <string name="label_moon_phase">Phase</string>
     <string name="label_moon_illumination">Illuminated</string>
     <string name="label_moonrise">Moonrise</string>

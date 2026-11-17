@@ -2,6 +2,7 @@ package martinlobato.com.ar.clima;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import android.content.Context;
 import android.view.View;
@@ -82,7 +83,11 @@ public class HomeScreenTest {
                 assertEquals(View.VISIBLE, a.findViewById(R.id.sectionSnow).getVisibility());
                 assertEquals(2, ((LinearLayout) a.findViewById(R.id.gridSnow)).getChildCount());
                 assertEquals(View.GONE, a.findViewById(R.id.sectionSea).getVisibility());
-                assertEquals(2, ((LinearLayout) a.findViewById(R.id.gridMoon)).getChildCount());
+                assertEquals(1, ((LinearLayout) a.findViewById(R.id.gridSun)).getChildCount());
+                assertTrue(((TextView) a.findViewById(R.id.tvSunrise)).getText().toString().matches("\\d\\d:\\d\\d"));
+                assertTrue(((TextView) a.findViewById(R.id.tvSunset)).getText().toString().matches("\\d\\d:\\d\\d"));
+                assertFalse(((TextView) a.findViewById(R.id.tvMoonPhase)).getText().toString().isEmpty());
+                assertTrue(((TextView) a.findViewById(R.id.tvMoonIllumination)).getText().toString().endsWith("iluminada"));
                 String status = ((TextView) a.findViewById(R.id.tvStatus)).getText().toString();
                 assertTrue(status, status.endsWith("· Open-Meteo"));
                 String temp = ((TextView) a.findViewById(R.id.tvCurrentTemp)).getText().toString();
