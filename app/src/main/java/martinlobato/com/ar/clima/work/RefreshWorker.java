@@ -14,7 +14,7 @@ import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
 /**
  * Actualiza en segundo plano el pronóstico del lugar seleccionado, redibuja los widgets y,
- * si está activado, avisa de lluvia próxima.
+ * si están activados, avisa de lluvia próxima y de las alertas configuradas.
  */
 public class RefreshWorker extends Worker {
 
@@ -31,6 +31,7 @@ public class RefreshWorker extends Worker {
             WeatherWidgetProvider.updateAll(ctx);
             if (forecast != null) {
                 RainNotifier.check(ctx, forecast);
+                AlertNotifier.check(ctx, forecast);
             }
             return Result.success();
         } catch (IOException e) {

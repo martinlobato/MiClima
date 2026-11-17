@@ -3,6 +3,7 @@ package martinlobato.com.ar.clima;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import martinlobato.com.ar.clima.data.WeatherAlerts;
 import martinlobato.com.ar.clima.data.WeatherModel;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.util.Units;
@@ -40,6 +41,59 @@ public final class Prefs {
     private static final String KEY_RAIN_NOTIFIED = "rain_alert_notified_at";
 
     private Prefs() {
+    }
+
+    // ---- alertas configurables
+
+    public static boolean isAlertEnabled(Context context, WeatherAlerts.Type type) {
+        return prefs(context).getBoolean("alert_on_" + type.name(), false);
+    }
+
+    public static void setAlertEnabled(Context context, WeatherAlerts.Type type, boolean enabled) {
+        prefs(context).edit().putBoolean("alert_on_" + type.name(), enabled).apply();
+    }
+
+    /** Umbral de la alerta en unidades métricas (°C, km/h, índice). */
+    public static double getAlertThreshold(Context context, WeatherAlerts.Type type) {
+        return prefs(context).getFloat("alert_limit_" + type.name(), (float) type.defaultThreshold);
+    }
+
+    public static void setAlertThreshold(Context context, WeatherAlerts.Type type, double value) {
+        prefs(context).edit().putFloat("alert_limit_" + type.name(), (float) value).apply();
+    }
+
+    /** ¿Ya se avisó este evento? (clave de WeatherAlerts.dedupeKey). */
+    public static boolean wasAlertNotified(Context context, String key) {
+        return ("|" + prefs(context).getString("alert_sent", "") + "|").contains("|" + key + "|");
+    }
+
+    /** Recuerda el evento avisado; guarda solo los últimos 40 para no crecer sin límite. */
+    public static void markAlertNotified(Context context, String key) {
+        String current = prefs(context).getString("alert_sent", "");
+        java.util.List<String> keys = new java.util.ArrayList<>(
+                java.util.Arrays.asList(current.isEmpty() ? new String[0] : current.split("\\|")));
+        keys.add(key);
+        while (keys.size() > 40) keys.remove(0);
+        prefs(context).edit().putString("alert_sent", android.text.TextUtils.join("|", keys)).apply();
+    }
+
+    // ---- resumen diario
+
+    public static boolean isSummaryEnabled(Context context) {
+        return prefs(context).getBoolean("summary_on", false);
+    }
+
+    public static void setSummaryEnabled(Context context, boolean enabled) {
+        prefs(context).edit().putBoolean("summary_on", enabled).apply();
+    }
+
+    /** Hora del resumen en minutos desde medianoche; por defecto 7:30. */
+    public static int getSummaryMinutes(Context context) {
+        return prefs(context).getInt("summary_minutes", 7 * 60 + 30);
+    }
+
+    public static void setSummaryMinutes(Context context, int minutes) {
+        prefs(context).edit().putInt("summary_minutes", minutes).apply();
     }
 
     /** Actividad elegida en "Mejor momento para…" (nombre del enum de ActivityAdvisor). */

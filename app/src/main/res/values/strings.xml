@@ -315,4 +315,43 @@
     <string name="info_snow_hour">%1$s · isoterma %2$s</string>
     <string name="legend_snow">Nieve caída por hora</string>
     <string name="best_peak">%1$s. Lo mejor, cerca de las %2$s</string>
+
+    <!-- Avisos configurables y resumen diario -->
+    <string name="alerts_title">Más avisos y resumen diario</string>
+    <string name="alerts_section">Avisos</string>
+    <string name="alerts_desc">Te avisa una vez por evento cuando en las próximas 24 horas se cruza el umbral. Tocá la condición para cambiarla. Necesita la actualización en segundo plano activada.</string>
+    <string name="alerts_channel">Alertas del tiempo</string>
+    <string name="alert_frost">Helada</string>
+    <string name="alert_heat">Calor</string>
+    <string name="alert_wind">Viento fuerte</string>
+    <string name="alert_uv">UV alto</string>
+    <string name="alert_air">Aire de mala calidad</string>
+    <string name="alert_frost_rule">Si la temperatura baja a %1$s o menos</string>
+    <string name="alert_heat_rule">Si la temperatura llega a %1$s o más</string>
+    <string name="alert_wind_rule">Si las ráfagas llegan a %1$s o más</string>
+    <string name="alert_uv_rule">Si el índice UV llega a %1$s o más</string>
+    <string name="alert_air_rule">Si el índice AQI llega a %1$s o más</string>
+    <string name="alert_threshold_prompt">Nuevo umbral %1$s</string>
+    <string name="alert_threshold_invalid">Ese valor no es un número válido.</string>
+    <string name="alert_frost_title">Posible helada</string>
+    <string name="alert_heat_title">Calor fuerte</string>
+    <string name="alert_wind_title">Viento fuerte</string>
+    <string name="alert_uv_title">Índice UV alto</string>
+    <string name="alert_air_title">Aire de mala calidad</string>
+    <string name="alert_text">Hasta %1$s, desde el %2$s en %3$s</string>
+    <string name="summary_section">Resumen diario</string>
+    <string name="summary_switch">Notificación con el resumen del día</string>
+    <string name="summary_time">Hora del resumen</string>
+    <string name="summary_desc">Una notificación por día con la máxima, la mínima, la lluvia y cuánto se aparta de lo normal.</string>
+    <string name="summary_channel">Resumen diario</string>
+    <string name="summary_title">Hoy en %1$s: %2$s</string>
+    <string name="summary_text">Máx %1$s · Mín %2$s · Lluvia %3$s</string>
+    <string name="summary_normal">%1$s · %2$s %3$s de lo normal</string>
+    <string name="summary_above">sobre</string>
+    <string name="summary_below">bajo</string>
+    <string name="alerts_value_summary">%1$s · resumen diario activado</string>
+    <plurals name="alerts_active">
+        <item quantity="one">%d aviso activado</item>
+        <item quantity="other">%d avisos activados</item>
+    </plurals>
 </resources>

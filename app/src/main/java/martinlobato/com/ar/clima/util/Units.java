@@ -82,6 +82,21 @@ public final class Units {
         return unit == Precip.IN ? km / 1.609344 : km;
     }
 
+    /** Inversa de {@link #temp}: de la unidad elegida a °C. */
+    public static double tempToCelsius(double value, Temp unit) {
+        return unit == Temp.F ? (value - 32.0) * 5.0 / 9.0 : value;
+    }
+
+    /** Inversa de {@link #wind}: de la unidad elegida a km/h. */
+    public static double windToKmh(double value, Wind unit) {
+        switch (unit) {
+            case MS: return value * 3.6;
+            case KN: return value * 1.852;
+            case MPH: return value * 1.609344;
+            default: return value;
+        }
+    }
+
     /** Valor del enum por nombre, o {@code fallback} si el nombre guardado no existe. */
     public static <E extends Enum<E>> E parse(Class<E> type, String name, E fallback) {
         if (name == null) return fallback;

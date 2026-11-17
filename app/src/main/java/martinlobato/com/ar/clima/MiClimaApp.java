@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.work.Configuration;
 
 import martinlobato.com.ar.clima.util.ThemeUtils;
+import martinlobato.com.ar.clima.work.DailySummaryWorker;
 import martinlobato.com.ar.clima.work.RefreshScheduler;
 
 /**
@@ -20,6 +21,7 @@ public class MiClimaApp extends Application implements Configuration.Provider {
         ThemeUtils.applyNightMode(this);
         ThemeUtils.registerDynamicColors(this);
         RefreshScheduler.apply(this);
+        DailySummaryWorker.schedule(this);
     }
 
     /** WorkManager se inicializa a demanda con esta configuración (ver AndroidManifest). */

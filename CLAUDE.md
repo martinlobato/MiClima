@@ -33,7 +33,7 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   elige en Ajustes y viaja como parámetro `models`. La caché guarda con qué modelo se bajó; si no
   coincide con el elegido, Inicio vuelve a bajar. Los modelos no automáticos pueden traer menos
   días o variables: `ForecastParser` recorta la cola vacía y lo que falta se muestra como "—".
-  Solo `ecmwf_ifs025` se verificó contra la API; los otros ids están tomados de la documentación.
+  Los cinco ids se verificaron contra la API.
 - Comparar modelos: `data/ModelComparison` pide en una sola consulta temperatura, lluvia y viento
   horarios de los cinco modelos (las claves llegan como `variable_modelo`); se guarda 3 h en
   `compare_<clave>.json`. Los cinco ids están verificados contra la API.
@@ -93,14 +93,23 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - Aviso de lluvia: `data/RainAlert` (lógica pura: primera hora con ≥60 % o ≥0,5 mm en las
   próximas 6 h, sin repetir la misma lluvia) y `work/RainNotifier` (notificación). Lo dispara
   `RefreshWorker`; está apagado por defecto y al activarlo en Ajustes pide `POST_NOTIFICATIONS`.
+- Alertas configurables: `data/WeatherAlerts` (lógica pura: helada, calor, ráfagas, UV y AQI con
+  umbral métrico guardado en `Prefs`; revisa las próximas 24 h) y `work/AlertNotifier`. Las
+  dispara `RefreshWorker`; se avisa una vez por tipo y día (`Prefs.markAlertNotified`).
+  `ui/AlertsActivity` (desde Ajustes) edita umbrales en las unidades elegidas.
+- Resumen diario: `work/DailySummaryWorker` es un OneTimeWork que se reprograma solo para la hora
+  elegida (por defecto 7:30); intenta actualizar y notifica máx/mín/lluvia y la diferencia con
+  lo normal si está guardado.
 - Inicio muestra además la tarjeta de calidad del aire (`AqiBarView`) y el detalle de día tiene el
   chip "Aire".
 
 ## Tests
 
 `./gradlew testDebugUnitTest` — parser y formateo en JVM, más `HomeScreenTest` (Robolectric) que
-abre Inicio con una caché sintética, `DayDetailTest` (detalle de día) y `PlacesScreenTest`
-(lugares y unidades); guardan capturas en `app/build/screenshots/`. Datos sintéticos en `TestData`.
+abre Inicio con una caché sintética, `DayDetailTest`, `PlacesScreenTest`, `CompareScreenTest`
+(modelos y normales) y `AlertsTest`; guardan capturas en `app/build/screenshots/`. Datos
+sintéticos en `TestData`. `MoonAndAdvisorTest` y `CompareAndNormalsTest` usan efemérides y
+respuestas reales de la API como referencia.
 
 ## Publicación
 
@@ -111,5 +120,5 @@ generar el `.aab` firmado.
 
 ## Pendiente
 
-- Verificar en un teléfono: modelos GFS/ICON/GEM/Météo-France, widgets, segundo plano y aviso
-  de lluvia.
+- Verificar en un teléfono: widgets, segundo plano, aviso de lluvia, alertas y resumen diario.
+- Verificar contra la API las variables de nieve (hay respaldo si las rechaza).

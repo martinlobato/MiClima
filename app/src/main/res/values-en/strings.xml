@@ -288,4 +288,42 @@
     <string name="info_snow_hour">%1$s · freezing level %2$s</string>
     <string name="legend_snow">Snowfall per hour</string>
     <string name="best_peak">%1$s. Best around %2$s</string>
+
+    <string name="alerts_title">More alerts and daily summary</string>
+    <string name="alerts_section">Alerts</string>
+    <string name="alerts_desc">Notifies you once per event when the threshold is crossed within the next 24 hours. Tap the condition to change it. Needs background refresh turned on.</string>
+    <string name="alerts_channel">Weather alerts</string>
+    <string name="alert_frost">Frost</string>
+    <string name="alert_heat">Heat</string>
+    <string name="alert_wind">Strong wind</string>
+    <string name="alert_uv">High UV</string>
+    <string name="alert_air">Poor air quality</string>
+    <string name="alert_frost_rule">If the temperature drops to %1$s or lower</string>
+    <string name="alert_heat_rule">If the temperature reaches %1$s or higher</string>
+    <string name="alert_wind_rule">If gusts reach %1$s or more</string>
+    <string name="alert_uv_rule">If the UV index reaches %1$s or more</string>
+    <string name="alert_air_rule">If the AQI reaches %1$s or more</string>
+    <string name="alert_threshold_prompt">New threshold %1$s</string>
+    <string name="alert_threshold_invalid">That is not a valid number.</string>
+    <string name="alert_frost_title">Possible frost</string>
+    <string name="alert_heat_title">Strong heat</string>
+    <string name="alert_wind_title">Strong wind</string>
+    <string name="alert_uv_title">High UV index</string>
+    <string name="alert_air_title">Poor air quality</string>
+    <string name="alert_text">Up to %1$s, from %2$s in %3$s</string>
+    <string name="summary_section">Daily summary</string>
+    <string name="summary_switch">Notification with the day\'s summary</string>
+    <string name="summary_time">Summary time</string>
+    <string name="summary_desc">One notification a day with the high, the low, rain and how it compares with normal.</string>
+    <string name="summary_channel">Daily summary</string>
+    <string name="summary_title">Today in %1$s: %2$s</string>
+    <string name="summary_text">High %1$s · Low %2$s · Rain %3$s</string>
+    <string name="summary_normal">%1$s · %2$s %3$s normal</string>
+    <string name="summary_above">above</string>
+    <string name="summary_below">below</string>
+    <string name="alerts_value_summary">%1$s · daily summary on</string>
+    <plurals name="alerts_active">
+        <item quantity="one">%d alert on</item>
+        <item quantity="other">%d alerts on</item>
+    </plurals>
 </resources>

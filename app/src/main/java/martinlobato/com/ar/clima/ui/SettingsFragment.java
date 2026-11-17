@@ -23,6 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
+import martinlobato.com.ar.clima.data.WeatherAlerts;
 import martinlobato.com.ar.clima.data.WeatherModel;
 import martinlobato.com.ar.clima.databinding.FragmentSettingsBinding;
 import martinlobato.com.ar.clima.databinding.ItemPaletteSwatchBinding;
@@ -70,6 +71,8 @@ public class SettingsFragment extends Fragment {
         setupUnits();
         setupData();
         setupRainAlert();
+        binding.rowAlerts.setOnClickListener(v ->
+                startActivity(new android.content.Intent(requireContext(), AlertsActivity.class)));
         setupThemeMode();
         setupThemePalette();
     }
@@ -229,6 +232,20 @@ public class SettingsFragment extends Fragment {
             Prefs.setThemePalette(appCtx, paletteValue);
             requireActivity().recreate();
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Al volver de la pantalla de avisos se actualiza el resumen.
+        if (binding == null) return;
+        int active = 0;
+        for (WeatherAlerts.Type t : WeatherAlerts.Type.values()) {
+            if (Prefs.isAlertEnabled(appCtx, t)) active++;
+        }
+        String alerts = getResources().getQuantityString(R.plurals.alerts_active, active, active);
+        binding.tvAlertsValue.setText(Prefs.isSummaryEnabled(appCtx)
+                ? getString(R.string.alerts_value_summary, alerts) : alerts);
     }
 
     @Override
