@@ -180,4 +180,71 @@ final class TestData {
         root.put("hourly", hourly);
         return root.toString();
     }
+
+    /** Normales planos (máx 20 °C, mín 10 °C) para la ubicación actual, ya guardados. */
+    static void writeNormals(Context ctx) throws Exception {
+        Prefs.setLastPlace(ctx, -33.45, -70.66, "Santiago");
+        JSONArray max = new JSONArray();
+        JSONArray min = new JSONArray();
+        for (int i = 0; i < 366; i++) {
+            max.put(20.0);
+            min.put(10.0);
+        }
+        JSONObject o = new JSONObject();
+        o.put("lat", -33.45);
+        o.put("lon", -70.66);
+        o.put("fetchedAt", System.currentTimeMillis());
+        o.put("max", max);
+        o.put("min", min);
+        try (FileOutputStream out = new FileOutputStream(new File(ctx.getFilesDir(), "normals_gps.json"))) {
+            out.write(o.toString().getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    /** Comparación de modelos sintética (16 días) ya guardada para la ubicación actual. */
+    static void writeComparison(Context ctx) throws Exception {
+        Prefs.setLastPlace(ctx, -33.45, -70.66, "Santiago");
+        TimeZone tz = TimeZone.getTimeZone(TZ);
+        SimpleDateFormat hourFmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US);
+        hourFmt.setTimeZone(tz);
+        Calendar cal = Calendar.getInstance(tz);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        String[] models = {"ecmwf_ifs025", "gfs_seamless", "icon_seamless", "gem_seamless", "meteofrance_seamless"};
+        int[] daysCovered = {15, 16, 7, 10, 4};
+        JSONObject hourly = new JSONObject();
+        JSONArray time = new JSONArray();
+        for (String m : models) {
+            hourly.put("temperature_2m_" + m, new JSONArray());
+            hourly.put("precipitation_" + m, new JSONArray());
+            hourly.put("wind_speed_10m_" + m, new JSONArray());
+        }
+        for (int i = 0; i < DAYS * 24; i++) {
+            time.put(hourFmt.format(cal.getTime()));
+            int h = i % 24;
+            for (int m = 0; m < models.length; m++) {
+                boolean has = i < daysCovered[m] * 24;
+                double t = 12 + m * 0.9 + (9 + m) * Math.max(0, Math.sin((h - 6) * Math.PI / 16));
+                hourly.getJSONArray("temperature_2m_" + models[m]).put(has ? Math.round(t * 10) / 10.0 : JSONObject.NULL);
+                hourly.getJSONArray("precipitation_" + models[m]).put(has ? (m == 1 && h > 14 && h < 19 ? 1.2 : 0.0) : JSONObject.NULL);
+                hourly.getJSONArray("wind_speed_10m_" + models[m]).put(has ? 6 + m * 2 + h % 9 : JSONObject.NULL);
+            }
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+        }
+        hourly.put("time", time);
+        JSONObject root = new JSONObject();
+        root.put("timezone", TZ);
+        root.put("utc_offset_seconds", tz.getOffset(System.currentTimeMillis()) / 1000);
+        root.put("hourly", hourly);
+        JSONObject wrapper = new JSONObject();
+        wrapper.put("fetchedAt", System.currentTimeMillis());
+        wrapper.put("lat", -33.45);
+        wrapper.put("lon", -70.66);
+        wrapper.put("raw", root.toString());
+        try (FileOutputStream out = new FileOutputStream(new File(ctx.getFilesDir(), "compare_gps.json"))) {
+            out.write(wrapper.toString().getBytes(StandardCharsets.UTF_8));
+        }
+    }
 }

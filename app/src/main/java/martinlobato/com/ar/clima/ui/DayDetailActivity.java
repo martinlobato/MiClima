@@ -32,6 +32,7 @@ import java.util.Locale;
 
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
+import martinlobato.com.ar.clima.data.ClimateNormals;
 import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherCode;
@@ -81,6 +82,8 @@ public class DayDetailActivity extends AppCompatActivity {
     private Variable variable = Variable.TEMP;
     private SimpleDateFormat hourFmt;
     private UnitFormat uf = UnitFormat.metric();
+    /** Normales climáticos del lugar, si ya se calcularon; null si no. */
+    private volatile ClimateNormals normals;
     private String[] compass;
     private String[] uvLevels;
 
@@ -122,11 +125,19 @@ public class DayDetailActivity extends AppCompatActivity {
 
         setupChips();
         binding.chart.setOnSelectionListener(this::updateChartInfo);
+        binding.btnCompareModels.setOnClickListener(v ->
+                startActivity(ModelCompareActivity.intent(this, dayTime)));
         binding.btnPrevDay.setOnClickListener(v -> showDay(dayIndex - 1));
         binding.btnNextDay.setOnClickListener(v -> showDay(dayIndex + 1));
 
         final Context app = getApplicationContext();
-        BackgroundExecutor.execute(() -> WeatherRepository.loadCached(app, PlaceStore.selectedCacheKey(app)), cached -> {
+        BackgroundExecutor.execute(() -> {
+            // Los normales solo se leen del guardado: esta pantalla no usa la red.
+            double[] coords = WeatherRepository.selectedCoordinates(app);
+            String key = PlaceStore.selectedCacheKey(app);
+            normals = coords == null ? null : WeatherRepository.cachedNormals(app, key, coords[0], coords[1]);
+            return WeatherRepository.loadCached(app, key);
+        }, cached -> {
             if (isFinishing() || isDestroyed()) return;
             if (cached == null || cached.daily.size() == 0 || cached.hourly.size() == 0) {
                 finish();
@@ -251,9 +262,28 @@ public class DayDetailActivity extends AppCompatActivity {
         CellGrid.addRow(binding.gridSummary,
                 R.string.label_wind_max, windText(d.windMax[dayIndex], d.windDirDominant[dayIndex]),
                 R.string.label_gusts, kmh(d.gustsMax[dayIndex]));
+        ClimateNormals n = normals;
+        if (n != null) {
+            java.util.Calendar cal = java.util.Calendar.getInstance(forecast.timeZone());
+            cal.setTimeInMillis(d.time[dayIndex]);
+            int month = cal.get(java.util.Calendar.MONTH) + 1;
+            int day = cal.get(java.util.Calendar.DAY_OF_MONTH);
+            CellGrid.addRow(binding.gridSummary,
+                    R.string.label_normal_max, normalCell(n.maxFor(month, day), d.tempMax[dayIndex]),
+                    R.string.label_normal_min, normalCell(n.minFor(month, day), d.tempMin[dayIndex]));
+        }
         CellGrid.addRow(binding.gridSummary,
                 R.string.label_sunrise, sunrise > 0 ? hourFmt.format(new Date(sunrise)) : Fmt.DASH,
                 R.string.label_sunset, sunset > 0 ? hourFmt.format(new Date(sunset)) : Fmt.DASH);
+    }
+
+    /** "24° (+3°)": el valor normal y cuánto se aparta el pronóstico de ese día. */
+    private String normalCell(double normal, double forecastValue) {
+        if (Double.isNaN(normal)) return Fmt.DASH;
+        if (Double.isNaN(forecastValue)) return uf.temp(normal);
+        double diff = forecastValue - normal;
+        return getString(R.string.fmt_normal_cell, uf.temp(normal),
+                (diff >= 0 ? "+" : "−") + uf.tempDiff(diff));
     }
 
     private static void setNavEnabled(View button, boolean enabled) {

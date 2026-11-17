@@ -34,6 +34,12 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   coincide con el elegido, Inicio vuelve a bajar. Los modelos no automáticos pueden traer menos
   días o variables: `ForecastParser` recorta la cola vacía y lo que falta se muestra como "—".
   Solo `ecmwf_ifs025` se verificó contra la API; los otros ids están tomados de la documentación.
+- Comparar modelos: `data/ModelComparison` pide en una sola consulta temperatura, lluvia y viento
+  horarios de los cinco modelos (las claves llegan como `variable_modelo`); se guarda 3 h en
+  `compare_<clave>.json`. Los cinco ids están verificados contra la API.
+- Contra lo normal: `data/ClimateNormals` promedia máxima y mínima de cada fecha sobre los
+  últimos 10 años (`archive-api.open-meteo.com`, una consulta de ~80 KB) con ventana de ±7 días;
+  se guarda en `normals_<clave>.json` y se recalcula cada 120 días o si la ubicación se movió.
 - Calidad del aire: `data/AirQuality` (API aparte, `air-quality-api.open-meteo.com`, AQI de
   EE. UU. y PM2.5/PM10/ozono/NO₂, ~5 días). Se pide junto con el pronóstico y es opcional: si
   falla, el pronóstico se guarda igual. Va dentro del mismo archivo de caché.
@@ -54,6 +60,11 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   línea con área o barras, serie secundaria punteada, selección al tocar/arrastrar; la escala
   sale de `util/ChartScale`) y tabla hora por hora de 12 columnas con la hora fija a la izquierda.
   Flechas para pasar al día anterior/siguiente.
+- `ui/ModelCompareActivity`: se abre desde el detalle de día; una línea por modelo
+  (`HourlyChartView.setComparison`), cuánto difieren y una fila por modelo con el resumen del
+  día o el valor de la hora seleccionada.
+- Inicio muestra bajo la tarjeta principal cuánto se aparta la máxima de hoy de lo normal, y el
+  detalle de día suma las celdas "Máx./Mín. normal" (solo si los normales ya están guardados).
 - `ui/PlacesFragment` (pestaña Lugares): búsqueda con demora de 500 ms, resultados para agregar,
   lista de guardados con la temperatura tomada de la caché, selección (vuelve a Inicio) y quitar
   con deshacer.

@@ -36,6 +36,13 @@ public final class UnitFormat {
         return Fmt.temp(tempValue(celsius));
     }
 
+    /** Diferencia de temperaturas (no una temperatura): en °F solo se escala, sin sumar 32. */
+    public String tempDiff(double celsiusDelta) {
+        if (Double.isNaN(celsiusDelta)) return Fmt.DASH;
+        double v = temp == Units.Temp.F ? celsiusDelta * 9.0 / 5.0 : celsiusDelta;
+        return Math.abs(Math.round(v)) + "°";
+    }
+
     // ---- viento
 
     public double windValue(double kmh) {
@@ -76,6 +83,10 @@ public final class UnitFormat {
     }
 
     // ---- precipitación
+
+    public double precipValue(double mm) {
+        return Units.precip(mm, precip);
+    }
 
     public String precipNumber(double mm) {
         double v = Units.precip(mm, precip);

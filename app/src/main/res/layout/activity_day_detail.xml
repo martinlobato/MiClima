@@ -231,6 +231,16 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCompareModels"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="10dp"
+                android:text="@string/compare_action"
+                app:cornerRadius="16dp" />
+
             <!-- Tabla hora por hora: columna de hora fija + resto con scroll horizontal -->
             <TextView
                 android:layout_width="wrap_content"

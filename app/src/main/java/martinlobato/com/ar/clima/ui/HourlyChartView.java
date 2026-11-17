@@ -55,6 +55,11 @@ public class HourlyChartView extends View {
     private boolean bars;
     private ChartScale scale = ChartScale.fixed(0, 1, 1);
     private AxisFormatter axisFormatter = String::valueOf;
+    /** Modo comparación: varias líneas de colores en lugar de la serie principal. */
+    @Nullable
+    private double[][] lines;
+    private int[] lineColors = new int[0];
+    private final Paint comparePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int nowIndex = -1;
     private int selected = -1;
     @Nullable
@@ -114,6 +119,20 @@ public class HourlyChartView extends View {
         this.axisFormatter = axisFormatter;
         this.nowIndex = nowIndex;
         this.selected = -1;
+        this.lines = null;
+        invalidate();
+    }
+
+    /**
+     * Modo comparación: dibuja una línea por serie, cada una con su color. Las series deben
+     * tener el mismo largo (una posición por hora); NaN corta la línea.
+     */
+    public void setComparison(double[][] lines, int[] colors, String[] xLabels, ChartScale scale,
+                              AxisFormatter axisFormatter, int nowIndex) {
+        setData(lines.length > 0 ? lines[0] : new double[0], null, xLabels, false, scale,
+                axisFormatter, nowIndex);
+        this.lines = lines;
+        this.lineColors = colors;
         invalidate();
     }
 
@@ -185,7 +204,16 @@ public class HourlyChartView extends View {
             canvas.drawText(xLabels[i], xOf(i, left, right), xLabelY, labelPaint);
         }
 
-        if (bars) {
+        if (lines != null) {
+            comparePaint.setStyle(Paint.Style.STROKE);
+            comparePaint.setStrokeWidth(2.2f * density);
+            comparePaint.setStrokeCap(Paint.Cap.ROUND);
+            comparePaint.setStrokeJoin(Paint.Join.ROUND);
+            for (int i = 0; i < lines.length; i++) {
+                comparePaint.setColor(lineColors[i % lineColors.length]);
+                drawLine(canvas, lines[i], comparePaint, left, right, top, bottom);
+            }
+        } else if (bars) {
             drawBars(canvas, left, right, top, bottom);
         } else {
             drawArea(canvas, left, right, top, bottom);
@@ -204,7 +232,7 @@ public class HourlyChartView extends View {
             float x = xOf(selected, left, right);
             markerPaint.setAlpha(255);
             canvas.drawLine(x, top, x, bottom, markerPaint);
-            if (!Double.isNaN(values[selected])) {
+            if (lines == null && !Double.isNaN(values[selected])) {
                 float y = yOf(values[selected], top, bottom);
                 canvas.drawCircle(x, y, 5.5f * density, dotPaint);
                 canvas.drawCircle(x, y, 2.5f * density, dotCorePaint);

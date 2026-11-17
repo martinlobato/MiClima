@@ -28,6 +28,7 @@ import martinlobato.com.ar.clima.MainActivity;
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.data.AirQuality;
+import martinlobato.com.ar.clima.data.ClimateNormals;
 import martinlobato.com.ar.clima.data.ApiException;
 import martinlobato.com.ar.clima.data.Forecast;
 import martinlobato.com.ar.clima.data.Place;
@@ -61,6 +62,10 @@ public class HomeFragment extends Fragment {
     @Nullable
     private Place place;
     private String cacheKey = WeatherRepository.KEY_CURRENT_LOCATION;
+    /** Normales climáticos del lugar mostrado; null hasta que se calculan. */
+    @Nullable
+    private ClimateNormals normals;
+    private boolean normalsRequested;
     private final HourlyAdapter hourlyAdapter = new HourlyAdapter();
     private LinearLayoutManager hourlyLayout;
     private ActivityResultLauncher<String> permissionLauncher;
@@ -323,9 +328,59 @@ public class HomeFragment extends Fragment {
                 R.string.label_cloud_cover, UnitFormat.percent(cloud),
                 R.string.label_precip_today, uf.precip(d.precipSum[dayIdx]));
 
+        renderNormal();
+        loadNormals();
         renderAir(f, now);
         renderDaily(f, dayIdx);
         renderSun(f, dayIdx);
+    }
+
+    /** "Máxima de hoy 3° sobre lo normal para la fecha (24°)"; oculto si aún no hay normales. */
+    private void renderNormal() {
+        Forecast f = forecast;
+        if (binding == null || f == null || normals == null || f.daily.size() == 0) {
+            if (binding != null) binding.tvNormal.setVisibility(View.GONE);
+            return;
+        }
+        int dayIdx = f.dayIndexAt(System.currentTimeMillis());
+        java.util.Calendar cal = java.util.Calendar.getInstance(f.timeZone());
+        cal.setTimeInMillis(f.daily.time[dayIdx]);
+        double normal = normals.maxFor(cal.get(java.util.Calendar.MONTH) + 1,
+                cal.get(java.util.Calendar.DAY_OF_MONTH));
+        double today = f.daily.tempMax[dayIdx];
+        if (Double.isNaN(normal) || Double.isNaN(today)) {
+            binding.tvNormal.setVisibility(View.GONE);
+            return;
+        }
+        double diff = today - normal;
+        // Menos de un grado y medio de diferencia se considera normal.
+        String text = Math.abs(diff) < 1.5 ? getString(R.string.normal_equal, uf.temp(normal))
+                : getString(diff > 0 ? R.string.normal_above : R.string.normal_below,
+                uf.tempDiff(diff), uf.temp(normal));
+        binding.tvNormal.setText(text);
+        binding.tvNormal.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Busca los normales del lugar una vez por pantalla: usa los guardados o, si faltan, baja diez
+     * años de historia. Si falla no se muestra nada; no es un dato imprescindible.
+     */
+    private void loadNormals() {
+        if (normalsRequested) return;
+        normalsRequested = true;
+        final String key = cacheKey;
+        BackgroundExecutor.execute(() -> {
+            try {
+                double[] coords = WeatherRepository.selectedCoordinates(appCtx);
+                return coords == null ? null : WeatherRepository.normals(appCtx, key, coords[0], coords[1]);
+            } catch (Exception e) {
+                return null;
+            }
+        }, result -> {
+            if (binding == null || result == null) return;
+            normals = result;
+            renderNormal();
+        });
     }
 
     /** Tarjeta de calidad del aire; se oculta si no hay datos para este momento. */
@@ -459,5 +514,6 @@ public class HomeFragment extends Fragment {
         binding.rvHourly.setAdapter(null);
         binding = null;
         refreshing = false;
+        normalsRequested = false;
     }
 }

@@ -23,6 +23,8 @@ public final class WeatherApi {
     private static final String AIR_CURRENT = "us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide";
     private static final String AIR_HOURLY = "us_aqi,pm2_5,pm10,ozone";
 
+    private static final String ARCHIVE_BASE = "https://archive-api.open-meteo.com/v1/archive";
+
     private WeatherApi() {
     }
 
@@ -38,6 +40,35 @@ public final class WeatherApi {
         return String.format(Locale.US,
                 "%s?latitude=%.2f&longitude=%.2f&current=%s&hourly=%s&timezone=auto&forecast_days=5",
                 AIR_BASE, lat, lon, AIR_CURRENT, AIR_HOURLY);
+    }
+
+    /** URL para comparar modelos: mismas horas, una serie por modelo y variable. */
+    static String comparisonUrl(double lat, double lon) {
+        StringBuilder models = new StringBuilder();
+        for (WeatherModel m : ModelComparison.MODELS) {
+            if (models.length() > 0) models.append(',');
+            models.append(m.apiId);
+        }
+        return String.format(Locale.US,
+                "%s?latitude=%.2f&longitude=%.2f&hourly=temperature_2m,precipitation,wind_speed_10m"
+                        + "&timezone=auto&forecast_days=%d&models=%s",
+                BASE, lat, lon, FORECAST_DAYS, models);
+    }
+
+    /** URL del archivo histórico: máxima y mínima diarias de los años indicados (inclusive). */
+    static String archiveUrl(double lat, double lon, int firstYear, int lastYear) {
+        return String.format(Locale.US,
+                "%s?latitude=%.2f&longitude=%.2f&start_date=%d-01-01&end_date=%d-12-31"
+                        + "&daily=temperature_2m_max,temperature_2m_min&timezone=auto",
+                ARCHIVE_BASE, lat, lon, firstYear, lastYear);
+    }
+
+    public static String fetchComparison(double lat, double lon) throws IOException {
+        return Http.get(comparisonUrl(lat, lon));
+    }
+
+    public static String fetchArchive(double lat, double lon, int firstYear, int lastYear) throws IOException {
+        return Http.get(archiveUrl(lat, lon, firstYear, lastYear));
     }
 
     /** Devuelve el JSON crudo del pronóstico. Lanza IOException ante error de red o HTTP != 200. */

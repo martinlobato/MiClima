@@ -215,4 +215,25 @@
     <string name="widget_name_lock">Mi Clima transparent</string>
     <string name="widget_description_lock">No background, for the lock screen or over your wallpaper</string>
     <string name="widget_rain">Rain %1$s</string>
+
+    <string name="compare_title">Compare models</string>
+    <string name="compare_action">Compare models for this day</string>
+    <string name="compare_error">Couldn\'t download the comparison</string>
+    <string name="compare_note">Each model covers a different number of days; where one has no data, its line stops.</string>
+    <string name="compare_models_day">Day summary per model</string>
+    <string name="compare_models_hour">Values at %1$s</string>
+    <string name="compare_temp_spread">Models differ by up to %1$s in the high</string>
+    <string name="compare_temp_agree">Models agree on the high (difference under %1$s)</string>
+    <string name="compare_rain_range">Rain for the day: between %1$s and %2$s depending on the model</string>
+    <string name="compare_rain_none">No model expects rain this day</string>
+    <string name="compare_wind_range">Max wind: between %1$s and %2$s depending on the model</string>
+    <string name="compare_no_data">No model data for this day</string>
+    <string name="compare_hi_lo">high %1$s · low %2$s</string>
+    <string name="compare_max">max %1$s</string>
+
+    <string name="normal_above">Today\'s high is %1$s above normal for the date (%2$s)</string>
+    <string name="normal_below">Today\'s high is %1$s below normal for the date (%2$s)</string>
+    <string name="normal_equal">Today\'s high is within normal for the date (%1$s)</string>
+    <string name="label_normal_max">Normal high</string>
+    <string name="label_normal_min">Normal low</string>
 </resources>

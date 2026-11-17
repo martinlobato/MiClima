@@ -233,4 +233,28 @@
     <string name="widget_description_lock">Sin fondo, para la pantalla de bloqueo o sobre el fondo de pantalla</string>
     <string name="widget_hi_lo_short" translatable="false">%1$s / %2$s</string>
     <string name="widget_rain">Lluvia %1$s</string>
+
+    <!-- Comparar modelos -->
+    <string name="compare_title">Comparar modelos</string>
+    <string name="compare_action">Comparar modelos para este día</string>
+    <string name="compare_error">No se pudo bajar la comparación</string>
+    <string name="compare_note">Cada modelo llega a distinta cantidad de días; donde uno no tiene datos, su línea se corta.</string>
+    <string name="compare_models_day">Resumen del día por modelo</string>
+    <string name="compare_models_hour">Valores a las %1$s</string>
+    <string name="compare_temp_spread">Los modelos difieren hasta %1$s en la máxima</string>
+    <string name="compare_temp_agree">Los modelos coinciden en la máxima (diferencia menor a %1$s)</string>
+    <string name="compare_rain_range">Lluvia del día: entre %1$s y %2$s según el modelo</string>
+    <string name="compare_rain_none">Ningún modelo prevé lluvia este día</string>
+    <string name="compare_wind_range">Viento máximo: entre %1$s y %2$s según el modelo</string>
+    <string name="compare_no_data">Sin datos de los modelos para este día</string>
+    <string name="compare_hi_lo">máx %1$s · mín %2$s</string>
+    <string name="compare_max">máx %1$s</string>
+
+    <!-- Contra lo normal -->
+    <string name="normal_above">Máxima de hoy %1$s sobre lo normal para la fecha (%2$s)</string>
+    <string name="normal_below">Máxima de hoy %1$s bajo lo normal para la fecha (%2$s)</string>
+    <string name="normal_equal">Máxima de hoy dentro de lo normal para la fecha (%1$s)</string>
+    <string name="label_normal_max">Máx. normal</string>
+    <string name="label_normal_min">Mín. normal</string>
+    <string name="fmt_normal_cell" translatable="false">%1$s (%2$s)</string>
 </resources>
