@@ -354,4 +354,7 @@
         <item quantity="one">%d aviso activado</item>
         <item quantity="other">%d avisos activados</item>
     </plurals>
+    <string name="places_open_map">Ver en Google Maps</string>
+    <string name="places_no_maps">No hay una app de mapas instalada.</string>
+    <string name="fmt_place_time">%1$s · hora local</string>
 </resources>

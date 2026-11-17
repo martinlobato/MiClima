@@ -326,4 +326,7 @@
         <item quantity="one">%d alert on</item>
         <item quantity="other">%d alerts on</item>
     </plurals>
+    <string name="places_open_map">View in Google Maps</string>
+    <string name="places_no_maps">No maps app is installed.</string>
+    <string name="fmt_place_time">%1$s · local time</string>
 </resources>

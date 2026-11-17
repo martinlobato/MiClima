@@ -298,14 +298,20 @@
                     app:strokeColor="?attr/colorOutlineVariant"
                     app:strokeWidth="1dp">
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvHourly"
+                    <martinlobato.com.ar.clima.ui.NestedScrollableHost
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clipToPadding="false"
-                        android:nestedScrollingEnabled="false"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="6dp" />
+                        android:layout_height="wrap_content">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvHourly"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clipToPadding="false"
+                            android:nestedScrollingEnabled="false"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="6dp" />
+
+                    </martinlobato.com.ar.clima.ui.NestedScrollableHost>
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -349,6 +355,10 @@
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
 
+                    <martinlobato.com.ar.clima.ui.NestedScrollableHost
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
                     <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -366,6 +376,8 @@
                             app:singleSelection="true" />
 
                     </HorizontalScrollView>
+
+                    </martinlobato.com.ar.clima.ui.NestedScrollableHost>
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"

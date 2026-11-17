@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -13,14 +14,16 @@ import android.widget.TextView;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadow.api.Shadow;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowLooper;
 
 import java.util.List;
@@ -28,6 +31,9 @@ import java.util.List;
 import martinlobato.com.ar.clima.data.Place;
 import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherRepository;
+import martinlobato.com.ar.clima.ui.HomeFragment;
+import martinlobato.com.ar.clima.ui.PlacesActivity;
+import martinlobato.com.ar.clima.ui.SettingsActivity;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.util.Units;
 
@@ -93,11 +99,8 @@ public class PlacesScreenTest {
     }
 
     @Test
-    public void placesTabListsSavedPlacesAndSelectingOneShowsItOnHome() throws Exception {
-        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            settle();
-            scenario.onActivity(a ->
-                    ((BottomNavigationView) a.findViewById(R.id.bottomNav)).setSelectedItemId(R.id.nav_places));
+    public void placesListShowsSavedPlacesAndSelectingOneOpensItsPage() throws Exception {
+        try (ActivityScenario<PlacesActivity> scenario = ActivityScenario.launch(PlacesActivity.intent(ctx, false))) {
             settle();
             scenario.onActivity(a -> {
                 LinearLayout list = a.findViewById(R.id.listPlaces);
@@ -106,29 +109,81 @@ public class PlacesScreenTest {
                 assertEquals("Ubicación actual", name(list, 0));
                 assertEquals("Ciudad de La Rioja", name(list, 1));
                 assertEquals("Chilecito", name(list, 2));
-                // Con caché se ve la temperatura; Chilecito todavía no tiene.
-                assertEquals(View.VISIBLE, list.getChildAt(1).findViewById(R.id.tvPlaceTemp).getVisibility());
+                // Con caché: temperatura, máx/mín de hoy y hora local; Chilecito todavía no tiene.
+                View rioja = list.getChildAt(1);
+                assertEquals(View.VISIBLE, rioja.findViewById(R.id.tvPlaceTemp).getVisibility());
+                String hiLo = ((TextView) rioja.findViewById(R.id.tvPlaceHiLo)).getText().toString();
+                assertTrue(hiLo, hiLo.matches("-?\\d+° / -?\\d+°"));
+                String time = ((TextView) rioja.findViewById(R.id.tvPlaceTime)).getText().toString();
+                assertTrue(time, time.endsWith("· hora local"));
                 assertEquals(View.GONE, list.getChildAt(2).findViewById(R.id.tvPlaceTemp).getVisibility());
+                // Cada lugar guardado tiene su botón de Google Maps.
+                assertEquals(View.VISIBLE, rioja.findViewById(R.id.btnPlaceMap).getVisibility());
                 TestData.saveScreenshot(a.getWindow().getDecorView(), "places-light");
 
-                list.getChildAt(1).performClick();
+                rioja.performClick();
+                assertTrue(a.isFinishing());
             });
+        }
+        assertEquals(LA_RIOJA.id, PlaceStore.selected(ctx).id);
+
+        // Inicio se abre en la página de ese lugar.
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             settle();
             scenario.onActivity(a -> {
+                ViewPager2 pager = a.findViewById(R.id.pager);
+                assertEquals(3, pager.getAdapter().getItemCount());
+                assertEquals(1, pager.getCurrentItem());
+                assertEquals("Ciudad de La Rioja", text(page(a, LA_RIOJA.id), R.id.tvPlace));
+            });
+        }
+    }
+
+    @Test
+    public void mapButtonOpensGoogleMapsAtThePlace() throws Exception {
+        try (ActivityScenario<PlacesActivity> scenario = ActivityScenario.launch(PlacesActivity.intent(ctx, false))) {
+            settle();
+            scenario.onActivity(a -> {
+                LinearLayout list = a.findViewById(R.id.listPlaces);
+                list.getChildAt(2).findViewById(R.id.btnPlaceMap).performClick();
+                Intent sent = ((ShadowActivity) Shadow.extract(a)).getNextStartedActivity();
+                assertNotNull(sent);
+                assertEquals(Intent.ACTION_VIEW, sent.getAction());
+                assertEquals("com.google.android.apps.maps", sent.getPackage());
+                assertEquals("geo:-29.16163,-67.49934?q=-29.16163,-67.49934(Chilecito)", sent.getData().toString());
+            });
+        }
+    }
+
+    @Test
+    public void swipingBetweenPlacesChangesTheSelectedOne() throws Exception {
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            waitForPlace(scenario, HomeFragment.CURRENT_LOCATION);
+            scenario.onActivity(a -> {
+                ViewPager2 pager = a.findViewById(R.id.pager);
+                assertEquals(0, pager.getCurrentItem());
+                assertEquals("Santiago", text(page(a, HomeFragment.CURRENT_LOCATION), R.id.tvPlace));
+                pager.setCurrentItem(1, false);
+            });
+            waitForPlace(scenario, LA_RIOJA.id);
+            scenario.onActivity(a -> {
                 assertEquals(LA_RIOJA.id, PlaceStore.selected(ctx).id);
-                assertEquals(R.id.nav_home,
-                        ((BottomNavigationView) a.findViewById(R.id.bottomNav)).getSelectedItemId());
-                assertEquals("Ciudad de La Rioja", ((TextView) a.findViewById(R.id.tvPlace)).getText().toString());
+                assertEquals("Ciudad de La Rioja", text(page(a, LA_RIOJA.id), R.id.tvPlace));
+                // Ajustes está en la barra de título; la barra inferior tiene lista y búsqueda.
+                assertNotNull(((androidx.appcompat.widget.Toolbar) a.findViewById(R.id.toolbar))
+                        .getMenu().findItem(R.id.action_settings));
+                a.findViewById(R.id.btnSearch).performClick();
+                Intent sent = ((ShadowActivity) Shadow.extract(a)).getNextStartedActivity();
+                assertEquals(PlacesActivity.class.getName(), sent.getComponent().getClassName());
+                assertTrue(sent.getBooleanExtra("search", false));
+                TestData.saveScreenshot(a.getWindow().getDecorView(), "home-pager");
             });
         }
     }
 
     @Test
     public void deletingAPlaceRemovesItsRow() throws Exception {
-        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
-            settle();
-            scenario.onActivity(a ->
-                    ((BottomNavigationView) a.findViewById(R.id.bottomNav)).setSelectedItemId(R.id.nav_places));
+        try (ActivityScenario<PlacesActivity> scenario = ActivityScenario.launch(PlacesActivity.intent(ctx, false))) {
             settle();
             scenario.onActivity(a -> {
                 LinearLayout list = a.findViewById(R.id.listPlaces);
@@ -148,22 +203,46 @@ public class PlacesScreenTest {
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             settle();
             scenario.onActivity(a -> {
+                View home = page(a, HomeFragment.CURRENT_LOCATION);
                 // 24.6 °C de la caché sintética = 76 °F.
-                assertEquals("76°", ((TextView) a.findViewById(R.id.tvCurrentTemp)).getText().toString());
-                LinearLayout grid = a.findViewById(R.id.gridDetails);
-                String all = allText(grid);
+                assertEquals("76°", text(home, R.id.tvCurrentTemp));
+                String all = allText(home.findViewById(R.id.gridDetails));
                 assertTrue(all, all.contains("mph"));
                 assertTrue(all, all.contains("inHg"));
                 assertTrue(all, all.contains(" mi"));
                 assertTrue(all, all.contains(" in"));
-
-                ((BottomNavigationView) a.findViewById(R.id.bottomNav)).setSelectedItemId(R.id.nav_settings);
             });
+        }
+        try (ActivityScenario<SettingsActivity> scenario = ActivityScenario.launch(SettingsActivity.class)) {
             settle();
             scenario.onActivity(a -> TestData.saveScreenshot(a.getWindow().getDecorView(), "settings-light"));
         } finally {
             Prefs.setUnits(ctx, UnitFormat.metric());
         }
+    }
+
+    /** Espera (hasta ~3 s) a que la página del lugar haya leído su caché y mostrado el nombre. */
+    private static void waitForPlace(ActivityScenario<MainActivity> scenario, long id) throws Exception {
+        for (int i = 0; i < 120; i++) {
+            ShadowLooper.idleMainLooper();
+            final boolean[] ready = new boolean[1];
+            scenario.onActivity(a -> {
+                androidx.fragment.app.Fragment f = a.getSupportFragmentManager().findFragmentByTag("f" + id);
+                ready[0] = f != null && f.getView() != null
+                        && ((TextView) f.requireView().findViewById(R.id.tvPlace)).getText().length() > 0;
+            });
+            if (ready[0]) return;
+            Thread.sleep(25);
+        }
+    }
+
+    /** Vista de la página de un lugar (FragmentStateAdapter etiqueta cada página como "f" + id). */
+    private static View page(MainActivity a, long id) {
+        return a.getSupportFragmentManager().findFragmentByTag("f" + id).requireView();
+    }
+
+    private static String text(View root, int id) {
+        return ((TextView) root.findViewById(id)).getText().toString();
     }
 
     private static String name(LinearLayout list, int index) {

@@ -73,6 +73,30 @@ public class HomeFragment extends Fragment {
     private LinearLayoutManager hourlyLayout;
     private ActivityResultLauncher<String> permissionLauncher;
 
+    /** Id de página de la ubicación actual del teléfono (los lugares guardados usan su id). */
+    public static final long CURRENT_LOCATION = Long.MIN_VALUE;
+    private static final String ARG_PLACE_ID = "place_id";
+
+    /** Página de clima de un lugar guardado, o de la ubicación actual con {@link #CURRENT_LOCATION}. */
+    public static HomeFragment newInstance(long placeId) {
+        HomeFragment f = new HomeFragment();
+        Bundle args = new Bundle();
+        args.putLong(ARG_PLACE_ID, placeId);
+        f.setArguments(args);
+        return f;
+    }
+
+    /** Lugar de esta página según sus argumentos; null = ubicación actual (o lugar ya quitado). */
+    @Nullable
+    private Place placeFromArguments() {
+        long id = getArguments() == null ? CURRENT_LOCATION : getArguments().getLong(ARG_PLACE_ID, CURRENT_LOCATION);
+        if (id == CURRENT_LOCATION) return null;
+        for (Place p : PlaceStore.list(appCtx)) {
+            if (p.id == id) return p;
+        }
+        return null;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,7 +117,7 @@ public class HomeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         appCtx = requireContext().getApplicationContext();
         uf = Prefs.units(appCtx);
-        place = PlaceStore.selected(appCtx);
+        place = placeFromArguments();
         cacheKey = place == null ? WeatherRepository.KEY_CURRENT_LOCATION : place.cacheKey();
 
         binding.swipeRefresh.setColorSchemeColors(
@@ -254,7 +278,7 @@ public class HomeFragment extends Fragment {
         binding.btnEmptySearch.setVisibility(askPermission ? View.VISIBLE : View.GONE);
         binding.btnEmptySearch.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).openPlaces();
+                ((MainActivity) getActivity()).openPlaces(true);
             }
         });
         binding.btnEmptyAction.setOnClickListener(v -> {
@@ -598,7 +622,9 @@ public class HomeFragment extends Fragment {
         final String key = cacheKey;
         BackgroundExecutor.execute(() -> {
             try {
-                double[] coords = WeatherRepository.selectedCoordinates(appCtx);
+                double[] coords = place != null ? new double[]{place.latitude, place.longitude}
+                        : Prefs.hasLastPlace(appCtx)
+                        ? new double[]{Prefs.getLastLat(appCtx), Prefs.getLastLon(appCtx)} : null;
                 return coords == null ? null : WeatherRepository.normals(appCtx, key, coords[0], coords[1]);
             } catch (Exception e) {
                 return null;

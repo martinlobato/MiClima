@@ -1,6 +1,9 @@
 package martinlobato.com.ar.clima.ui;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,13 +23,14 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import martinlobato.com.ar.clima.MainActivity;
 import martinlobato.com.ar.clima.Prefs;
 import martinlobato.com.ar.clima.R;
 import martinlobato.com.ar.clima.data.Forecast;
@@ -41,8 +46,9 @@ import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
 /**
- * Lugares: buscar ciudades (geocoding de Open-Meteo), guardarlas y elegir cuál muestra Inicio.
- * La primera fila siempre es la ubicación actual del teléfono.
+ * Lugares: buscar ciudades (geocoding de Open-Meteo), guardarlas y elegir cuál mostrar en Inicio.
+ * La primera fila siempre es la ubicación actual del teléfono. Cada fila muestra el clima del
+ * momento, la máxima y la mínima de hoy, la hora local y un acceso a Google Maps.
  */
 public class PlacesFragment extends Fragment {
 
@@ -56,6 +62,17 @@ public class PlacesFragment extends Fragment {
     /** Identifica la búsqueda vigente: las respuestas de búsquedas anteriores se descartan. */
     private int searchToken;
     private final Runnable searchRunnable = this::runSearch;
+
+    private static final String ARG_SEARCH = "search";
+
+    /** @param search true = arranca con el buscador enfocado y el teclado abierto */
+    public static PlacesFragment newInstance(boolean search) {
+        PlacesFragment f = new PlacesFragment();
+        Bundle args = new Bundle();
+        args.putBoolean(ARG_SEARCH, search);
+        f.setArguments(args);
+        return f;
+    }
 
     @Nullable
     @Override
@@ -103,6 +120,14 @@ public class PlacesFragment extends Fragment {
         binding.btnClearSearch.setOnClickListener(v -> binding.etSearch.setText(""));
 
         renderPlaces();
+
+        if (savedInstanceState == null && getArguments() != null && getArguments().getBoolean(ARG_SEARCH, false)) {
+            binding.etSearch.requestFocus();
+            binding.etSearch.post(() -> {
+                InputMethodManager imm = (InputMethodManager) appCtx.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null && binding != null) imm.showSoftInput(binding.etSearch, InputMethodManager.SHOW_IMPLICIT);
+            });
+        }
     }
 
     // ------------------------------------------------------------------ búsqueda
@@ -179,11 +204,17 @@ public class PlacesFragment extends Fragment {
         final Map<String, ItemPlaceBinding> rows = new HashMap<>();
 
         ItemPlaceBinding current = ItemPlaceBinding.inflate(getLayoutInflater(), binding.listPlaces, false);
-        current.ivPlaceIcon.setImageResource(R.drawable.ic_my_location);
+        current.ivPlaceIcon.setVisibility(View.VISIBLE);
         current.tvPlaceName.setText(R.string.places_current_location);
         setSubtitle(current, getString(R.string.places_current_subtitle));
         markSelected(current, selected == null);
         current.placeCard.setOnClickListener(v -> select(null));
+        if (Prefs.hasLastPlace(appCtx)) {
+            final double lat = Prefs.getLastLat(appCtx);
+            final double lon = Prefs.getLastLon(appCtx);
+            final String label = Prefs.getLastPlace(appCtx);
+            showMapButton(current, lat, lon, label != null ? label : getString(R.string.places_current_location));
+        }
         binding.listPlaces.addView(current.getRoot());
         rows.put(WeatherRepository.KEY_CURRENT_LOCATION, current);
 
@@ -195,6 +226,7 @@ public class PlacesFragment extends Fragment {
             row.placeCard.setOnClickListener(v -> select(place));
             row.btnPlaceAction.setVisibility(View.VISIBLE);
             row.btnPlaceAction.setOnClickListener(v -> delete(place));
+            showMapButton(row, place.latitude, place.longitude, place.name);
             binding.listPlaces.addView(row.getRoot());
             rows.put(place.cacheKey(), row);
         }
@@ -226,8 +258,47 @@ public class PlacesFragment extends Fragment {
                 if (WeatherRepository.KEY_CURRENT_LOCATION.equals(e.getKey()) && f.place != null) {
                     setSubtitle(row, f.place);
                 }
+                // Máxima / mínima de hoy y hora local del lugar (como la app de Samsung).
+                int d = f.dayIndexAt(now);
+                if (d < f.daily.size()) {
+                    row.tvPlaceHiLo.setText(getString(R.string.widget_hi_lo_short,
+                            uf.temp(f.daily.tempMax[d]), uf.temp(f.daily.tempMin[d])));
+                    row.tvPlaceHiLo.setVisibility(View.VISIBLE);
+                }
+                SimpleDateFormat local = new SimpleDateFormat("EEE d MMM, HH:mm", Locale.getDefault());
+                local.setTimeZone(f.timeZone());
+                row.tvPlaceTime.setText(getString(R.string.fmt_place_time,
+                        local.format(new Date(now)).replace(".", "")));
+                row.tvPlaceTime.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    /** Botón "Ver en Google Maps": abre el punto en Maps, o en otra app de mapas si no está. */
+    private void showMapButton(ItemPlaceBinding row, final double lat, final double lon, final String label) {
+        row.btnPlaceMap.setVisibility(View.VISIBLE);
+        row.btnPlaceMap.setOnClickListener(v -> openMap(lat, lon, label));
+    }
+
+    private void openMap(double lat, double lon, String label) {
+        String coords = String.format(Locale.US, "%.5f,%.5f", lat, lon);
+        Uri geo = Uri.parse("geo:" + coords + "?q=" + coords + "(" + Uri.encode(label) + ")");
+        Intent maps = new Intent(Intent.ACTION_VIEW, geo).setPackage("com.google.android.apps.maps");
+        try {
+            startActivity(maps);
+        } catch (ActivityNotFoundException noGoogleMaps) {
+            try {
+                // Sin Google Maps: cualquier app de mapas, o el navegador con Google Maps web.
+                startActivity(new Intent(Intent.ACTION_VIEW, geo));
+            } catch (ActivityNotFoundException noMaps) {
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://www.google.com/maps/search/?api=1&query=" + coords)));
+                } catch (ActivityNotFoundException nothing) {
+                    Toast.makeText(appCtx, R.string.places_no_maps, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     private static void setSubtitle(ItemPlaceBinding row, String subtitle) {
@@ -243,13 +314,12 @@ public class PlacesFragment extends Fragment {
         row.placeCard.setSelected(true);
     }
 
+    /** Elige el lugar y vuelve a Inicio, que se abre en la página de ese lugar. */
     private void select(@Nullable Place place) {
         PlaceStore.select(appCtx, place);
         WeatherWidgetProvider.requestUpdate(appCtx);
         hideKeyboard();
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).openHome();
-        }
+        requireActivity().finish();
     }
 
     private void delete(final Place place) {

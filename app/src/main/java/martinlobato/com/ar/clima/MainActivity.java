@@ -1,20 +1,40 @@
 package martinlobato.com.ar.clima;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.viewpager2.widget.ViewPager2;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import martinlobato.com.ar.clima.data.Place;
+import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.databinding.ActivityMainBinding;
 import martinlobato.com.ar.clima.ui.HomeFragment;
-import martinlobato.com.ar.clima.ui.PlacesFragment;
-import martinlobato.com.ar.clima.ui.SettingsFragment;
+import martinlobato.com.ar.clima.ui.PlacePagerAdapter;
+import martinlobato.com.ar.clima.ui.PlacesActivity;
+import martinlobato.com.ar.clima.ui.SettingsActivity;
 import martinlobato.com.ar.clima.util.ThemeUtils;
+import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
-/** Activity anfitriona: barra superior + contenedor de fragments + navegación inferior. */
+/**
+ * Activity principal: el clima de cada lugar en una página que se pasa deslizando, con
+ * Ajustes en la barra de título y abajo la lista de lugares, el indicador de página y la búsqueda.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    private PlacePagerAdapter adapter;
+    /** Al volver de Ajustes se recrea la pantalla para aplicar tema y unidades. */
+    private boolean returningFromSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,53 +42,91 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setSupportActionBar(binding.toolbar);
 
-        binding.bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            Fragment fragment = id == R.id.nav_settings ? new SettingsFragment()
-                    : id == R.id.nav_places ? new PlacesFragment() : new HomeFragment();
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentContainer, fragment)
-                    .commit();
-            applyToolbar(id);
-            return true;
+        // La barra inferior deja libre la barra de navegación del sistema.
+        final int baseBottom = binding.bottomBar.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomBar, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), baseBottom + bars.bottom);
+            return insets;
         });
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentContainer, new HomeFragment())
-                    .commit();
-            applyToolbar(R.id.nav_home);
-        }
+        adapter = new PlacePagerAdapter(this);
+        binding.pager.setAdapter(adapter);
+        binding.pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                binding.pageDots.setCurrent(position);
+                // El lugar a la vista es el "seleccionado": lo usan el detalle de día, los
+                // widgets y la actualización en segundo plano.
+                long id = adapter.idAt(position);
+                Place shown = id == HomeFragment.CURRENT_LOCATION ? null : findPlace(id);
+                Place before = PlaceStore.selected(MainActivity.this);
+                if ((before == null ? HomeFragment.CURRENT_LOCATION : before.id) != id) {
+                    PlaceStore.select(MainActivity.this, shown);
+                    WeatherWidgetProvider.requestUpdate(MainActivity.this);
+                }
+            }
+        });
+        binding.btnPlacesList.setOnClickListener(v -> openPlaces(false));
+        binding.btnSearch.setOnClickListener(v -> openPlaces(true));
+
+        loadPages();
     }
 
-    // Tras recreate() (cambio de tema) el fragment se restaura solo; falta la toolbar.
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        applyToolbar(binding.bottomNav.getSelectedItemId());
-    }
-
-    /** Vuelve a Inicio (por ejemplo después de elegir un lugar). */
-    public void openHome() {
-        binding.bottomNav.setSelectedItemId(R.id.nav_home);
-    }
-
-    /** Abre la pestaña Lugares (por ejemplo desde el estado vacío de Inicio). */
-    public void openPlaces() {
-        binding.bottomNav.setSelectedItemId(R.id.nav_places);
-    }
-
-    private void applyToolbar(int navId) {
-        int title = navId == R.id.nav_settings ? R.string.settings_title
-                : navId == R.id.nav_places ? R.string.places_title : R.string.app_name;
-        int logo = navId == R.id.nav_settings ? R.drawable.ic_toolbar_settings
-                : navId == R.id.nav_places ? R.drawable.ic_toolbar_places : R.drawable.ic_toolbar_logo;
-        binding.toolbar.setLogo(logo);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(title);
+    protected void onRestart() {
+        super.onRestart();
+        if (returningFromSettings) {
+            returningFromSettings = false;
+            recreate();
+            return;
         }
+        // Al volver de Lugares puede haber lugares nuevos, quitados u otro elegido.
+        loadPages();
+    }
+
+    private Place findPlace(long id) {
+        for (Place p : PlaceStore.list(this)) {
+            if (p.id == id) return p;
+        }
+        return null;
+    }
+
+    /** Arma las páginas (ubicación actual + guardados) y muestra la del lugar seleccionado. */
+    private void loadPages() {
+        List<Long> ids = new ArrayList<>();
+        ids.add(HomeFragment.CURRENT_LOCATION);
+        for (Place p : PlaceStore.list(this)) {
+            ids.add(p.id);
+        }
+        adapter.setIds(ids);
+        binding.pageDots.setPages(ids.size(), true);
+        Place selected = PlaceStore.selected(this);
+        int position = Math.max(0, adapter.positionOf(selected == null ? HomeFragment.CURRENT_LOCATION : selected.id));
+        binding.pager.setCurrentItem(position, false);
+        binding.pageDots.setCurrent(position);
+    }
+
+    /** Abre la lista de lugares; con {@code search} entra directo a buscar una ciudad. */
+    public void openPlaces(boolean search) {
+        startActivity(PlacesActivity.intent(this, search));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            returningFromSettings = true;
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

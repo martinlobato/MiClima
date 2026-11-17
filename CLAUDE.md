@@ -62,7 +62,16 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 
 ## Pantallas
 
-- `ui/HomeFragment`: tarjeta actual, tira horaria de 16 días (`HourlyAdapter`, con fichas
+- Navegación (`MainActivity`): **una página por lugar** en un `ViewPager2` (`ui/PlacePagerAdapter`,
+  id de página = id del lugar o `HomeFragment.CURRENT_LOCATION` para la ubicación actual, que va
+  primero). Deslizar cambia de lugar y lo marca como seleccionado (`PlaceStore.select`), que es
+  lo que usan el detalle de día, la comparación, los widgets y el worker. Ajustes es un ícono en
+  la barra de título (`ui/SettingsActivity`). Abajo hay una barra propia: lista de lugares,
+  `ui/PageDotsView` (puntos, con un pin para la ubicación actual) y búsqueda; las dos abren
+  `ui/PlacesActivity` (la búsqueda con el buscador enfocado). Al volver de Ajustes la pantalla se
+  recrea; al volver de Lugares se rearman las páginas. Las vistas que se desplazan en horizontal
+  dentro de una página (tira horaria, chips) van envueltas en `ui/NestedScrollableHost`.
+- `ui/HomeFragment.newInstance(placeId)`: tarjeta actual, tira horaria de 16 días (`HourlyAdapter`, con fichas
   separadoras por día y rótulo del día visible), grilla "Ahora", lista de días con `RangeBarView`
   (tocar un día, o una ficha de día en la tira, abre su detalle) y tarjeta de sol.
 - `ui/DayDetailActivity`: detalle de un día sobre la caché (sin red). Resumen, chips de variable
@@ -77,9 +86,10 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   detalle de día suma las celdas "Máx./Mín. normal" (solo si los normales ya están guardados).
 - Inicio suma las tarjetas "Mejor momento para…" (chips de actividad), "Nieve y cordillera",
   "Mar" (solo con costa) y "Luna"; el detalle de día suma el chip "Nieve" y la fila de luna.
-- `ui/PlacesFragment` (pestaña Lugares): búsqueda con demora de 500 ms, resultados para agregar,
-  lista de guardados con la temperatura tomada de la caché, selección (vuelve a Inicio) y quitar
-  con deshacer.
+- `ui/PlacesFragment` (en `PlacesActivity`): búsqueda con demora de 500 ms, resultados para
+  agregar y lista de lugares con clima actual, máx/mín de hoy y hora local (de la caché), botón
+  "Ver en Google Maps" (intent `geo:` a Google Maps, con respaldo a otra app o a la web) y quitar
+  con deshacer. Elegir un lugar cierra la pantalla e Inicio abre su página.
 - `ui/SettingsFragment`: unidades (temperatura, viento, presión, lluvia/distancia), modo, paleta,
   modelo meteorológico y frecuencia de actualización en segundo plano.
 - Widgets (`widget/WeatherWidgetProvider.Kind`): FULL 4×2 (clima actual + 5 casillas cada 3 h),
@@ -106,7 +116,8 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 ## Tests
 
 `./gradlew testDebugUnitTest` — parser y formateo en JVM, más `HomeScreenTest` (Robolectric) que
-abre Inicio con una caché sintética, `DayDetailTest`, `PlacesScreenTest`, `CompareScreenTest`
+abre Inicio con una caché sintética, `DayDetailTest`, `PlacesScreenTest` (lugares, páginas,
+Google Maps y unidades), `CompareScreenTest`
 (modelos y normales) y `AlertsTest`; guardan capturas en `app/build/screenshots/`. Datos
 sintéticos en `TestData`. `MoonAndAdvisorTest` y `CompareAndNormalsTest` usan efemérides y
 respuestas reales de la API como referencia.
@@ -120,5 +131,7 @@ generar el `.aab` firmado.
 
 ## Pendiente
 
+- Rehacer las capturas de `store_assets/capturas/` con la navegación nueva (hoy muestran la barra
+  inferior vieja con pestañas).
 - Verificar en un teléfono: widgets, segundo plano, aviso de lluvia, alertas y resumen diario.
 - Verificar contra la API las variables de nieve (hay respaldo si las rechaza).
