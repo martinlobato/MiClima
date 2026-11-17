@@ -31,6 +31,7 @@ import martinlobato.com.ar.clima.data.AirQuality;
 import martinlobato.com.ar.clima.data.ClimateNormals;
 import martinlobato.com.ar.clima.data.ApiException;
 import martinlobato.com.ar.clima.data.Forecast;
+import martinlobato.com.ar.clima.data.Marine;
 import martinlobato.com.ar.clima.data.Place;
 import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherCode;
@@ -40,7 +41,9 @@ import martinlobato.com.ar.clima.databinding.ItemDailyBinding;
 import martinlobato.com.ar.clima.databinding.ItemHourBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.Fmt;
+import martinlobato.com.ar.clima.util.ActivityAdvisor;
 import martinlobato.com.ar.clima.util.LocationHelper;
+import martinlobato.com.ar.clima.util.Moon;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
@@ -98,6 +101,7 @@ public class HomeFragment extends Fragment {
         binding.swipeRefresh.setOnRefreshListener(this::refresh);
 
         setupHourlyStrip();
+        setupActivityChips();
 
         BackgroundExecutor.execute(() -> WeatherRepository.loadCached(appCtx, cacheKey), cached -> {
             if (binding == null) return;
@@ -330,9 +334,232 @@ public class HomeFragment extends Fragment {
 
         renderNormal();
         loadNormals();
+        renderBest(f, now);
         renderAir(f, now);
+        renderSnow(f, hourIdx, dayIdx);
+        renderSea(f, now);
         renderDaily(f, dayIdx);
         renderSun(f, dayIdx);
+        renderMoon(f, now, dayIdx);
+    }
+
+    // ---------------------------------------------------------------- mejor momento
+
+    private static final ActivityAdvisor.Activity[] ACTIVITIES = ActivityAdvisor.Activity.values();
+    private static final int[] ACTIVITY_LABELS = {R.string.activity_run, R.string.activity_bike,
+            R.string.activity_laundry, R.string.activity_bbq};
+
+    private void setupActivityChips() {
+        android.content.res.ColorStateList background =
+                androidx.appcompat.content.res.AppCompatResources.getColorStateList(requireContext(), R.color.chip_bg);
+        android.content.res.ColorStateList text =
+                androidx.appcompat.content.res.AppCompatResources.getColorStateList(requireContext(), R.color.chip_text);
+        android.content.res.ColorStateList stroke = android.content.res.ColorStateList.valueOf(
+                MaterialColors.getColor(binding.getRoot(), com.google.android.material.R.attr.colorOutlineVariant));
+        String current = Prefs.getBestActivity(appCtx);
+        for (int i = 0; i < ACTIVITIES.length; i++) {
+            final ActivityAdvisor.Activity activity = ACTIVITIES[i];
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            chip.setId(View.generateViewId());
+            chip.setText(ACTIVITY_LABELS[i]);
+            chip.setCheckable(true);
+            chip.setCheckedIconVisible(false);
+            chip.setChipBackgroundColor(background);
+            chip.setTextColor(text);
+            chip.setChipStrokeColor(stroke);
+            chip.setChipStrokeWidth(getResources().getDisplayMetrics().density);
+            chip.setChecked(activity.name().equals(current));
+            chip.setOnCheckedChangeListener((button, checked) -> {
+                if (!checked) return;
+                Prefs.setBestActivity(appCtx, activity.name());
+                if (forecast != null) renderBest(forecast, System.currentTimeMillis());
+            });
+            binding.chipGroupActivity.addView(chip);
+        }
+    }
+
+    private ActivityAdvisor.Activity selectedActivity() {
+        String name = Prefs.getBestActivity(appCtx);
+        for (ActivityAdvisor.Activity a : ACTIVITIES) {
+            if (a.name().equals(name)) return a;
+        }
+        return ActivityAdvisor.Activity.RUN;
+    }
+
+    /** Condiciones de las horas [from, to) en el formato que usa ActivityAdvisor. */
+    private static ActivityAdvisor.Hour[] advisorHours(Forecast f, int from, int to) {
+        java.util.Calendar cal = java.util.Calendar.getInstance(f.timeZone());
+        ActivityAdvisor.Hour[] out = new ActivityAdvisor.Hour[Math.max(0, to - from)];
+        Forecast.Hourly h = f.hourly;
+        for (int i = from; i < to; i++) {
+            ActivityAdvisor.Hour a = new ActivityAdvisor.Hour();
+            cal.setTimeInMillis(h.time[i]);
+            a.hourOfDay = cal.get(java.util.Calendar.HOUR_OF_DAY);
+            a.apparent = h.apparent[i];
+            a.precipProb = h.precipProb[i];
+            a.precip = h.precip[i];
+            a.wind = h.wind[i];
+            a.gusts = h.gusts[i];
+            a.humidity = h.humidity[i];
+            a.uv = h.uv[i];
+            a.isDay = h.isDay[i];
+            out[i - from] = a;
+        }
+        return out;
+    }
+
+    /** Mejor tramo de lo que queda de hoy o, si no hay ninguno, de mañana. */
+    private void renderBest(Forecast f, long now) {
+        if (binding == null) return;
+        binding.sectionBest.setVisibility(View.VISIBLE);
+        ActivityAdvisor.Activity activity = selectedActivity();
+        int dayIdx = f.dayIndexAt(now);
+        SimpleDateFormat hourFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        hourFmt.setTimeZone(f.timeZone());
+        for (int offset = 0; offset < 2 && dayIdx + offset < f.daily.size(); offset++) {
+            int first = offset == 0 ? f.hourIndexAt(now) : f.firstHourIndexOfDay(dayIdx + offset);
+            int end = dayIdx + offset + 1 < f.daily.size() ? f.firstHourIndexOfDay(dayIdx + offset + 1) : f.hourly.size();
+            if (first < 0 || end <= first) continue;
+            ActivityAdvisor.Window w = ActivityAdvisor.best(activity, advisorHours(f, first, end));
+            if (w == null) continue;
+            int from = first + w.from;
+            int to = first + w.to;
+            String start = hourFmt.format(new Date(f.hourly.time[from]));
+            String stop = hourFmt.format(new Date(f.hourly.time[to - 1] + DateUtils.HOUR_IN_MILLIS));
+            binding.tvBestTitle.setText(getString(offset == 0 ? R.string.best_today : R.string.best_tomorrow, start, stop));
+            double apparentMin = Double.NaN;
+            double apparentMax = Double.NaN;
+            double rainMax = 0;
+            for (int i = from; i < to; i++) {
+                double a = f.hourly.apparent[i];
+                if (!Double.isNaN(a)) {
+                    if (!(a >= apparentMin)) apparentMin = a;
+                    if (!(a <= apparentMax)) apparentMax = a;
+                }
+                if (f.hourly.precipProb[i] > rainMax) rainMax = f.hourly.precipProb[i];
+            }
+            String feels = Double.isNaN(apparentMin) ? Fmt.DASH
+                    : uf.temp(apparentMin).equals(uf.temp(apparentMax)) ? uf.temp(apparentMin)
+                    : uf.temp(apparentMin) + "–" + uf.temp(apparentMax);
+            String detail = getString(w.score >= ActivityAdvisor.GREAT ? R.string.best_great
+                    : R.string.best_good, feels, UnitFormat.percent(rainMax));
+            // En tramos largos se dice además cuál es la mejor hora.
+            if (to - from > 3) {
+                detail = getString(R.string.best_peak, detail,
+                        hourFmt.format(new Date(f.hourly.time[first + w.peak])));
+            }
+            binding.tvBestDetail.setText(detail);
+            return;
+        }
+        binding.tvBestTitle.setText(R.string.best_none);
+        binding.tvBestDetail.setText(R.string.best_none_detail);
+    }
+
+    // ---------------------------------------------------------------- nieve y cordillera
+
+    private void renderSnow(Forecast f, int hourIdx, int dayIdx) {
+        Forecast.Hourly h = f.hourly;
+        if (h.freezingLevel == null || allNaN(h.freezingLevel)) {
+            binding.sectionSnow.setVisibility(View.GONE);
+            return;
+        }
+        binding.sectionSnow.setVisibility(View.VISIBLE);
+        double week = Double.NaN;
+        String next = getString(R.string.snow_none);
+        SimpleDateFormat dayFmt = new SimpleDateFormat("EEE d", Locale.getDefault());
+        dayFmt.setTimeZone(f.timeZone());
+        boolean nextFound = false;
+        for (int d = dayIdx; d < f.daily.size(); d++) {
+            double v = f.daily.snowfallSum[d];
+            if (Double.isNaN(v)) continue;
+            if (d < dayIdx + 7) week = (Double.isNaN(week) ? 0 : week) + v;
+            if (!nextFound && v >= 0.1) {
+                nextFound = true;
+                String day = d == dayIdx ? getString(R.string.today)
+                        : d == dayIdx + 1 ? getString(R.string.tomorrow)
+                        : dayFmt.format(new Date(f.daily.time[d])).replace(".", "");
+                next = getString(R.string.fmt_info, day, uf.snow(v));
+            }
+        }
+        double depthCm = h.snowDepth[hourIdx] * 100;
+        binding.gridSnow.removeAllViews();
+        addCellRow(binding.gridSnow,
+                R.string.label_freezing_level, uf.altitude(h.freezingLevel[hourIdx]),
+                R.string.label_snow_depth, uf.snow(depthCm));
+        addCellRow(binding.gridSnow,
+                R.string.label_snow_week, uf.snow(week),
+                R.string.label_snow_next, next);
+        binding.tvSnowNote.setText(R.string.snow_note);
+    }
+
+    private static boolean allNaN(double[] values) {
+        for (double v : values) {
+            if (!Double.isNaN(v)) return false;
+        }
+        return true;
+    }
+
+    // ---------------------------------------------------------------- mar
+
+    private void renderSea(Forecast f, long now) {
+        Marine m = f.marine;
+        if (m == null) {
+            binding.sectionSea.setVisibility(View.GONE);
+            return;
+        }
+        double height = m.currentWaveHeight;
+        double period = m.currentWavePeriod;
+        double direction = m.currentWaveDirection;
+        double water = m.currentSeaTemp;
+        if (m.currentTime <= 0 || Math.abs(now - m.currentTime) > 2 * DateUtils.HOUR_IN_MILLIS) {
+            // Guardado de otra hora: se toma la hora en curso de la serie.
+            int i = -1;
+            for (int k = 0; k < m.size() && m.time[k] <= now; k++) i = k;
+            if (i < 0) {
+                binding.sectionSea.setVisibility(View.GONE);
+                return;
+            }
+            height = m.waveHeight[i];
+            period = m.wavePeriod[i];
+            direction = Double.NaN;
+            water = m.seaTemp[i];
+        }
+        double maxToday = Double.NaN;
+        for (int k = 0; k < m.size(); k++) {
+            if (f.sameLocalDay(m.time[k], now) && !Double.isNaN(m.waveHeight[k]) && !(m.waveHeight[k] <= maxToday)) {
+                maxToday = m.waveHeight[k];
+            }
+        }
+        String[] compass = getResources().getStringArray(R.array.compass_points);
+        String waves = Double.isNaN(direction) ? uf.waveHeight(height)
+                : uf.waveHeight(height) + " " + compass[Fmt.compassIndex(direction)];
+        binding.sectionSea.setVisibility(View.VISIBLE);
+        binding.gridSea.removeAllViews();
+        addCellRow(binding.gridSea,
+                R.string.label_waves, waves,
+                R.string.label_wave_period, Double.isNaN(period) ? Fmt.DASH
+                        : getString(R.string.fmt_seconds, Fmt.round(period)));
+        addCellRow(binding.gridSea,
+                R.string.label_sea_temp, uf.temp(water),
+                R.string.label_waves_max, uf.waveHeight(maxToday));
+    }
+
+    // ---------------------------------------------------------------- luna
+
+    private void renderMoon(Forecast f, long now, int dayIdx) {
+        Moon.Phase phase = Moon.phase(now);
+        Moon.Times times = Moon.times(f.daily.time[dayIdx], f.latitude, f.longitude);
+        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        timeFmt.setTimeZone(f.timeZone());
+        binding.gridMoon.removeAllViews();
+        addCellRow(binding.gridMoon,
+                R.string.label_moon_phase, getResources().getStringArray(R.array.moon_phases)[phase.index()],
+                R.string.label_moon_illumination, UnitFormat.percent(phase.illumination * 100));
+        addCellRow(binding.gridMoon,
+                R.string.label_moonrise, times.rise > 0 ? timeFmt.format(new Date(times.rise))
+                        : getString(R.string.moon_no_event),
+                R.string.label_moonset, times.set > 0 ? timeFmt.format(new Date(times.set))
+                        : getString(R.string.moon_no_event));
     }
 
     /** "Máxima de hoy 3° sobre lo normal para la fecha (24°)"; oculto si aún no hay normales. */

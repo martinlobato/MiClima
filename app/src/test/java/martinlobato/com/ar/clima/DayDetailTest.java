@@ -69,7 +69,7 @@ public class DayDetailTest {
                 assertEquals(12, ((LinearLayout) table.getChildAt(1)).getChildCount());
 
                 ChipGroup chips = a.findViewById(R.id.chipGroupVariable);
-                assertEquals(7, chips.getChildCount());
+                assertEquals(8, chips.getChildCount());
                 assertTrue(text(a, R.id.tvChartInfo), text(a, R.id.tvChartInfo).startsWith("Máx "));
 
                 // Seleccionar una hora en el gráfico muestra su detalle.

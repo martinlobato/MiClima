@@ -46,6 +46,9 @@ public final class ForecastParser {
         f.hourly.windDir = nums(h, "wind_direction_10m", n);
         f.hourly.gusts = nums(h, "wind_gusts_10m", n);
         f.hourly.uv = nums(h, "uv_index", n);
+        f.hourly.snowfall = nums(h, "snowfall", n);
+        f.hourly.snowDepth = nums(h, "snow_depth", n);
+        f.hourly.freezingLevel = nums(h, "freezing_level_height", n);
 
         JSONObject d = root.getJSONObject("daily");
         f.daily.time = times(d.getJSONArray("time"), cal);
@@ -61,6 +64,7 @@ public final class ForecastParser {
         f.daily.windMax = nums(d, "wind_speed_10m_max", m);
         f.daily.gustsMax = nums(d, "wind_gusts_10m_max", m);
         f.daily.windDirDominant = nums(d, "wind_direction_10m_dominant", m);
+        f.daily.snowfallSum = nums(d, "snowfall_sum", m);
 
         JSONObject c = root.optJSONObject("current");
         if (c != null) {
@@ -106,6 +110,9 @@ public final class ForecastParser {
             h.windDir = Arrays.copyOf(h.windDir, hours);
             h.gusts = Arrays.copyOf(h.gusts, hours);
             h.uv = Arrays.copyOf(h.uv, hours);
+            h.snowfall = Arrays.copyOf(h.snowfall, hours);
+            h.snowDepth = Arrays.copyOf(h.snowDepth, hours);
+            h.freezingLevel = Arrays.copyOf(h.freezingLevel, hours);
         }
         Forecast.Daily d = f.daily;
         int days = d.size();
@@ -123,6 +130,7 @@ public final class ForecastParser {
             d.windMax = Arrays.copyOf(d.windMax, days);
             d.gustsMax = Arrays.copyOf(d.gustsMax, days);
             d.windDirDominant = Arrays.copyOf(d.windDirDominant, days);
+            d.snowfallSum = Arrays.copyOf(d.snowfallSum, days);
         }
     }
 

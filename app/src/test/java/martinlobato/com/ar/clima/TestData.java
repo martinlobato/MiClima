@@ -62,7 +62,7 @@ final class TestData {
         String[] hourlyKeys = {"temperature_2m", "apparent_temperature", "relative_humidity_2m",
                 "dew_point_2m", "precipitation_probability", "precipitation", "weather_code",
                 "pressure_msl", "cloud_cover", "visibility", "wind_speed_10m", "wind_direction_10m",
-                "wind_gusts_10m", "uv_index", "is_day"};
+                "wind_gusts_10m", "uv_index", "is_day", "snowfall", "snow_depth", "freezing_level_height"};
         JSONObject hourly = new JSONObject();
         JSONArray hTime = new JSONArray();
         for (String k : hourlyKeys) hourly.put(k, new JSONArray());
@@ -70,7 +70,7 @@ final class TestData {
         String[] dailyKeys = {"time", "weather_code", "temperature_2m_max", "temperature_2m_min",
                 "sunrise", "sunset", "uv_index_max", "precipitation_sum",
                 "precipitation_probability_max", "wind_speed_10m_max", "wind_gusts_10m_max",
-                "wind_direction_10m_dominant"};
+                "wind_direction_10m_dominant", "snowfall_sum"};
         for (String k : dailyKeys) daily.put(k, new JSONArray());
 
         for (int d = 0; d < DAYS; d++) {
@@ -91,6 +91,7 @@ final class TestData {
             daily.getJSONArray("wind_speed_10m_max").put(22.3);
             daily.getJSONArray("wind_gusts_10m_max").put(44.1);
             daily.getJSONArray("wind_direction_10m_dominant").put(225);
+            daily.getJSONArray("snowfall_sum").put(code == 71 ? 8.4 : 0);
             for (int h = 0; h < 24; h++) {
                 hTime.put(hourFmt.format(cal.getTime()));
                 double t = min + (max - min) * Math.max(0, Math.sin((h - 6) * Math.PI / 16));
@@ -109,6 +110,9 @@ final class TestData {
                 hourly.getJSONArray("wind_gusts_10m").put(28.4);
                 hourly.getJSONArray("uv_index").put(h >= 7 && h <= 20 ? 6.4 : 0);
                 hourly.getJSONArray("is_day").put(h >= 7 && h <= 20 ? 1 : 0);
+                hourly.getJSONArray("snowfall").put(code == 71 && h >= 6 && h < 18 ? 0.7 : 0);
+                hourly.getJSONArray("snow_depth").put(0);
+                hourly.getJSONArray("freezing_level_height").put(3200 - d * 60 + h * 15);
                 cal.add(Calendar.HOUR_OF_DAY, 1);
             }
         }

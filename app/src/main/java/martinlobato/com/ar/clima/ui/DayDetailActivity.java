@@ -40,6 +40,7 @@ import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.ActivityDayDetailBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.ChartScale;
+import martinlobato.com.ar.clima.util.Moon;
 import martinlobato.com.ar.clima.util.Fmt;
 import martinlobato.com.ar.clima.util.ThemeUtils;
 import martinlobato.com.ar.clima.util.UnitFormat;
@@ -63,7 +64,8 @@ public class DayDetailActivity extends AppCompatActivity {
         UV(R.string.var_uv),
         HUMIDITY(R.string.var_humidity),
         PRESSURE(R.string.var_pressure),
-        AIR(R.string.var_air);
+        AIR(R.string.var_air),
+        SNOW(R.string.var_snow);
 
         final int labelRes;
 
@@ -262,6 +264,14 @@ public class DayDetailActivity extends AppCompatActivity {
         CellGrid.addRow(binding.gridSummary,
                 R.string.label_wind_max, windText(d.windMax[dayIndex], d.windDirDominant[dayIndex]),
                 R.string.label_gusts, kmh(d.gustsMax[dayIndex]));
+        Moon.Phase moonPhase = Moon.phase(d.time[dayIndex] + 12 * DateUtils.HOUR_IN_MILLIS);
+        Moon.Times moonTimes = Moon.times(d.time[dayIndex], forecast.latitude, forecast.longitude);
+        CellGrid.addRow(binding.gridSummary,
+                R.string.label_moon, getString(R.string.fmt_info,
+                        getResources().getStringArray(R.array.moon_phases)[moonPhase.index()],
+                        UnitFormat.percent(moonPhase.illumination * 100)),
+                R.string.label_moon_times, (moonTimes.rise > 0 ? hourFmt.format(new Date(moonTimes.rise)) : Fmt.DASH)
+                        + " / " + (moonTimes.set > 0 ? hourFmt.format(new Date(moonTimes.set)) : Fmt.DASH));
         ClimateNormals n = normals;
         if (n != null) {
             java.util.Calendar cal = java.util.Calendar.getInstance(forecast.timeZone());
@@ -370,6 +380,13 @@ public class DayDetailActivity extends AppCompatActivity {
                 scale = ChartScale.fixed(0, 100, 25);
                 axis = UnitFormat::percent;
                 break;
+            case SNOW:
+                values = convert(series(h.snowfall), uf::snowValue);
+                bars = true;
+                scale = ChartScale.of(0, hi(uf.snowValue(1), max(values)), 4);
+                axis = Fmt::oneDecimal;
+                legendRes = R.string.legend_snow;
+                break;
             case AIR:
                 values = airSeries();
                 bars = true;
@@ -412,6 +429,14 @@ public class DayDetailActivity extends AppCompatActivity {
                 case WIND:
                     text = getString(R.string.info_wind_day, kmh(max(series(h.wind))), kmh(max(series(h.gusts))));
                     break;
+                case SNOW: {
+                    double lo = min(series(h.freezingLevel));
+                    double top = max(series(h.freezingLevel));
+                    String total = uf.snow(d.snowfallSum[dayIndex]);
+                    text = Double.isNaN(lo) ? getString(R.string.info_snow_day_no_level, total)
+                            : getString(R.string.info_snow_day, total, uf.altitudeNumber(lo), uf.altitude(top));
+                    break;
+                }
                 case AIR: {
                     double worst = max(airSeries());
                     text = Double.isNaN(worst) ? getString(R.string.info_air_none)
@@ -445,6 +470,10 @@ public class DayDetailActivity extends AppCompatActivity {
                 case WIND:
                     text = getString(R.string.fmt_info3, hour, windText(h.wind[i], h.windDir[i]),
                             getString(R.string.info_gusts, kmh(h.gusts[i])));
+                    break;
+                case SNOW:
+                    text = getString(R.string.fmt_info, hour, getString(R.string.info_snow_hour,
+                            uf.snow(h.snowfall[i]), uf.altitude(h.freezingLevel[i])));
                     break;
                 case AIR: {
                     double aqi = airSeries()[selected];

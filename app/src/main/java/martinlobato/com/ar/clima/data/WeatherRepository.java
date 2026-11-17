@@ -48,8 +48,20 @@ public final class WeatherRepository {
             f.place = wrapper.isNull("place") ? null : wrapper.optString("place", null);
             f.model = WeatherModel.parse(wrapper.optString("model", null));
             f.air = parseAir(wrapper.isNull("air") ? null : wrapper.optString("air", null));
+            f.marine = parseMarine(wrapper.isNull("marine") ? null : wrapper.optString("marine", null));
             return f;
         } catch (IOException | JSONException e) {
+            return null;
+        }
+    }
+
+    /** Estado del mar, o null si no hay texto, no se puede leer o el lugar no tiene costa. */
+    private static Marine parseMarine(String raw) {
+        if (raw == null || raw.isEmpty()) return null;
+        try {
+            Marine m = Marine.parse(raw);
+            return m.hasData() ? m : null;
+        } catch (JSONException e) {
             return null;
         }
     }
@@ -84,10 +96,28 @@ public final class WeatherRepository {
             airRaw = null;
         }
 
+        // Mar: también opcional. Para un lugar guardado sin costa no se vuelve a preguntar;
+        // la ubicación actual se mueve, así que ahí se consulta siempre.
+        String marineRaw = null;
+        boolean fixedPlace = !KEY_CURRENT_LOCATION.equals(key);
+        if (!(fixedPlace && Prefs.isInland(context, key))) {
+            try {
+                marineRaw = WeatherApi.fetchMarine(lat, lon);
+                f.marine = parseMarine(marineRaw);
+                if (f.marine == null) {
+                    marineRaw = null;
+                    if (fixedPlace) Prefs.setInland(context, key);
+                }
+            } catch (IOException e) {
+                marineRaw = null;
+            }
+        }
+
         JSONObject wrapper = new JSONObject();
         wrapper.put("fetchedAt", now);
         wrapper.put("place", place == null ? JSONObject.NULL : place);
         wrapper.put("model", model.name());
+        wrapper.put("marine", marineRaw == null ? JSONObject.NULL : marineRaw);
         wrapper.put("air", airRaw == null ? JSONObject.NULL : airRaw);
         wrapper.put("raw", raw);
         File dest = cacheFile(context, key);

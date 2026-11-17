@@ -23,6 +23,8 @@ public final class Forecast {
     public WeatherModel model = WeatherModel.AUTO;
     /** Calidad del aire; null si no se pudo obtener. */
     public AirQuality air;
+    /** Estado del mar; null si no se pidió, falló o el lugar no tiene costa. */
+    public Marine marine;
 
     public final Current current = new Current();
     public final Hourly hourly = new Hourly();
@@ -48,6 +50,8 @@ public final class Forecast {
         public boolean[] isDay = new boolean[0];
         public double[] temp, apparent, humidity, dewPoint, precipProb, precip, code, pressure,
                 cloud, visibility, wind, windDir, gusts, uv;
+        /** Nieve caída en la hora (cm), nieve acumulada en el suelo (m) y altura de la isoterma 0 °C (m). */
+        public double[] snowfall, snowDepth, freezingLevel;
 
         public int size() {
             return time.length;
@@ -60,6 +64,8 @@ public final class Forecast {
         public long[] sunset = new long[0];
         public double[] code, tempMax, tempMin, uvMax, precipSum, precipProbMax, windMax,
                 gustsMax, windDirDominant;
+        /** Nieve caída en el día (cm). */
+        public double[] snowfallSum;
 
         public int size() {
             return time.length;

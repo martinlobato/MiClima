@@ -25,7 +25,7 @@ import org.robolectric.annotation.GraphicsMode;
  * hora por hora. Además guarda una captura en build/screenshots para revisar el diseño.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34, qualifiers = "es-w411dp-h2600dp-xxhdpi")
+@Config(sdk = 34, qualifiers = "es-w411dp-h3400dp-xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class HomeScreenTest {
 
@@ -75,6 +75,14 @@ public class HomeScreenTest {
                 assertEquals(View.VISIBLE, a.findViewById(R.id.sectionAir).getVisibility());
                 assertEquals("64", ((TextView) a.findViewById(R.id.tvAqi)).getText().toString());
                 assertEquals("Moderada", ((TextView) a.findViewById(R.id.tvAqiLevel)).getText().toString());
+                // Mejor momento, nieve y luna siempre; mar solo con costa (la caché sintética no tiene).
+                assertEquals(View.VISIBLE, a.findViewById(R.id.sectionBest).getVisibility());
+                String best = ((TextView) a.findViewById(R.id.tvBestTitle)).getText().toString();
+                assertTrue(best, best.startsWith("Hoy de ") || best.startsWith("Mañana de ") || best.startsWith("Hoy y mañana"));
+                assertEquals(View.VISIBLE, a.findViewById(R.id.sectionSnow).getVisibility());
+                assertEquals(2, ((LinearLayout) a.findViewById(R.id.gridSnow)).getChildCount());
+                assertEquals(View.GONE, a.findViewById(R.id.sectionSea).getVisibility());
+                assertEquals(2, ((LinearLayout) a.findViewById(R.id.gridMoon)).getChildCount());
                 String status = ((TextView) a.findViewById(R.id.tvStatus)).getText().toString();
                 assertTrue(status, status.endsWith("· Open-Meteo"));
                 String temp = ((TextView) a.findViewById(R.id.tvCurrentTemp)).getText().toString();

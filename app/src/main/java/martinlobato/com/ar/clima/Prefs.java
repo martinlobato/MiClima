@@ -42,6 +42,24 @@ public final class Prefs {
     private Prefs() {
     }
 
+    /** Actividad elegida en "Mejor momento para…" (nombre del enum de ActivityAdvisor). */
+    public static String getBestActivity(Context context) {
+        return prefs(context).getString("best_activity", "RUN");
+    }
+
+    public static void setBestActivity(Context context, String activity) {
+        prefs(context).edit().putString("best_activity", activity).apply();
+    }
+
+    /** ¿Ya se comprobó que este lugar guardado no tiene mar cerca? (evita volver a preguntar). */
+    public static boolean isInland(Context context, String placeKey) {
+        return prefs(context).getBoolean("inland_" + placeKey, false);
+    }
+
+    public static void setInland(Context context, String placeKey) {
+        prefs(context).edit().putBoolean("inland_" + placeKey, true).apply();
+    }
+
     /** Aviso de lluvia próxima; apagado por defecto porque requiere permiso de notificaciones. */
     public static boolean isRainAlertEnabled(Context context) {
         return prefs(context).getBoolean(KEY_RAIN_ALERT, false);

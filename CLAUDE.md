@@ -40,6 +40,16 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 - Contra lo normal: `data/ClimateNormals` promedia máxima y mínima de cada fecha sobre los
   últimos 10 años (`archive-api.open-meteo.com`, una consulta de ~80 KB) con ventana de ±7 días;
   se guarda en `normals_<clave>.json` y se recalcula cada 120 días o si la ubicación se movió.
+- Nieve: el pronóstico pide además `snowfall`, `snow_depth`, `freezing_level_height` y
+  `snowfall_sum`. No se pudieron verificar en vivo (límite de la API): si el servicio responde
+  400, `WeatherApi.fetchForecast` repite la consulta sin ellas.
+- Mar: `data/Marine` (`marine-api.open-meteo.com`, olas y temperatura del agua). Opcional como el
+  aire; si un lugar guardado no tiene costa (todo null) se recuerda (`Prefs.isInland`) y no se
+  vuelve a consultar.
+- Luna: `util/Moon` la calcula en el teléfono (fórmulas de SunCalc); verificada contra una
+  efeméride con error de pocos minutos.
+- Mejor momento: `util/ActivityAdvisor` puntúa cada hora 0–100 para correr, bici, tender ropa y
+  asado con reglas simples, y elige el mejor tramo de hoy (o de mañana).
 - Calidad del aire: `data/AirQuality` (API aparte, `air-quality-api.open-meteo.com`, AQI de
   EE. UU. y PM2.5/PM10/ozono/NO₂, ~5 días). Se pide junto con el pronóstico y es opcional: si
   falla, el pronóstico se guarda igual. Va dentro del mismo archivo de caché.
@@ -65,6 +75,8 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   día o el valor de la hora seleccionada.
 - Inicio muestra bajo la tarjeta principal cuánto se aparta la máxima de hoy de lo normal, y el
   detalle de día suma las celdas "Máx./Mín. normal" (solo si los normales ya están guardados).
+- Inicio suma las tarjetas "Mejor momento para…" (chips de actividad), "Nieve y cordillera",
+  "Mar" (solo con costa) y "Luna"; el detalle de día suma el chip "Nieve" y la fila de luna.
 - `ui/PlacesFragment` (pestaña Lugares): búsqueda con demora de 500 ms, resultados para agregar,
   lista de guardados con la temperatura tomada de la caché, selección (vuelve a Inicio) y quitar
   con deshacer.

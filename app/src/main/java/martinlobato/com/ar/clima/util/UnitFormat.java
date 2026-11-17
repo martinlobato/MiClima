@@ -109,6 +109,61 @@ public final class UnitFormat {
         return withUnit(distanceNumber(km), precip.distanceLabel, km);
     }
 
+    // ---- nieve, alturas y olas (siguen a la unidad de lluvia: métrico o imperial)
+
+    private boolean imperial() {
+        return precip == Units.Precip.IN;
+    }
+
+    /** Nieve caída, recibida en cm: "12 cm" o "4.7 in". */
+    public String snow(double cm) {
+        if (Double.isNaN(cm)) return Fmt.DASH;
+        return imperial() ? Fmt.oneDecimal(cm / 2.54) + " in" : Fmt.oneDecimal(cm) + " cm";
+    }
+
+    /** Nieve en la unidad elegida (cm o in), para graficar. */
+    public double snowValue(double cm) {
+        return imperial() ? cm / 2.54 : cm;
+    }
+
+    public String snowNumber(double cm) {
+        if (Double.isNaN(cm)) return Fmt.DASH;
+        return Fmt.oneDecimal(imperial() ? cm / 2.54 : cm);
+    }
+
+    public String snowLabel() {
+        return imperial() ? "in" : "cm";
+    }
+
+    /** Altura sobre el nivel del mar, recibida en metros, redondeada a decenas: "3250 m" o "10660 ft". */
+    public String altitude(double meters) {
+        if (Double.isNaN(meters)) return Fmt.DASH;
+        return altitudeNumber(meters) + " " + altitudeLabel();
+    }
+
+    public double altitudeValue(double meters) {
+        return imperial() ? meters * 3.28084 : meters;
+    }
+
+    public String altitudeNumber(double meters) {
+        if (Double.isNaN(meters)) return Fmt.DASH;
+        return String.valueOf(Math.round(altitudeValue(meters) / 10.0) * 10);
+    }
+
+    public String altitudeLabel() {
+        return imperial() ? "ft" : "m";
+    }
+
+    /** Altura de ola, recibida en metros: "1.4 m" o "4.6 ft". */
+    public String waveHeight(double meters) {
+        if (Double.isNaN(meters)) return Fmt.DASH;
+        return Fmt.oneDecimal(waveValue(meters)) + " " + altitudeLabel();
+    }
+
+    public double waveValue(double meters) {
+        return imperial() ? meters * 3.28084 : meters;
+    }
+
     // ---- porcentaje
 
     public static String percent(double value) {

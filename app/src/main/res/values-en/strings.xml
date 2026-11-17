@@ -236,4 +236,56 @@
     <string name="normal_equal">Today\'s high is within normal for the date (%1$s)</string>
     <string name="label_normal_max">Normal high</string>
     <string name="label_normal_min">Normal low</string>
+
+    <string name="section_best">Best time for…</string>
+    <string name="activity_run">Running</string>
+    <string name="activity_bike">Cycling</string>
+    <string name="activity_laundry">Drying laundry</string>
+    <string name="activity_bbq">Barbecue</string>
+    <string name="best_today">Today from %1$s to %2$s</string>
+    <string name="best_tomorrow">Tomorrow from %1$s to %2$s</string>
+    <string name="best_none">No good time today or tomorrow</string>
+    <string name="best_none_detail">Rain, wind or temperature are unfavourable all day.</string>
+    <string name="best_great">Very good conditions · feels like %1$s, rain %2$s</string>
+    <string name="best_good">Acceptable conditions · feels like %1$s, rain %2$s</string>
+
+    <string name="section_snow">Snow and mountains</string>
+    <string name="label_freezing_level">Freezing level</string>
+    <string name="label_snow_depth">Snow on the ground</string>
+    <string name="label_snow_week">Snow, 7 days</string>
+    <string name="label_snow_next">Next snowfall</string>
+    <string name="snow_none">No snowfall</string>
+    <string name="snow_note">The freezing level is the altitude where the temperature is 0 °C: above it, precipitation usually falls as snow.</string>
+
+    <string name="section_sea">Sea</string>
+    <string name="label_waves">Waves</string>
+    <string name="label_wave_period">Period</string>
+    <string name="label_sea_temp">Water temperature</string>
+    <string name="label_waves_max">Max waves today</string>
+
+    <string name="section_moon">Moon</string>
+    <string name="label_moon_phase">Phase</string>
+    <string name="label_moon_illumination">Illuminated</string>
+    <string name="label_moonrise">Moonrise</string>
+    <string name="label_moonset">Moonset</string>
+    <string name="moon_no_event">Not today</string>
+    <string-array name="moon_phases">
+        <item>New moon</item>
+        <item>Waxing crescent</item>
+        <item>First quarter</item>
+        <item>Waxing gibbous</item>
+        <item>Full moon</item>
+        <item>Waning gibbous</item>
+        <item>Last quarter</item>
+        <item>Waning crescent</item>
+    </string-array>
+
+    <string name="var_snow">Snow</string>
+    <string name="label_moon">Moon</string>
+    <string name="label_moon_times">Moonrise / moonset</string>
+    <string name="info_snow_day">Snow for the day %1$s · freezing level between %2$s and %3$s</string>
+    <string name="info_snow_day_no_level">Snow for the day %1$s</string>
+    <string name="info_snow_hour">%1$s · freezing level %2$s</string>
+    <string name="legend_snow">Snowfall per hour</string>
+    <string name="best_peak">%1$s. Best around %2$s</string>
 </resources>

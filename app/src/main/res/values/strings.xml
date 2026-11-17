@@ -257,4 +257,62 @@
     <string name="label_normal_max">Máx. normal</string>
     <string name="label_normal_min">Mín. normal</string>
     <string name="fmt_normal_cell" translatable="false">%1$s (%2$s)</string>
+
+    <!-- Mejor momento -->
+    <string name="section_best">Mejor momento para…</string>
+    <string name="activity_run">Correr</string>
+    <string name="activity_bike">Bici</string>
+    <string name="activity_laundry">Tender ropa</string>
+    <string name="activity_bbq">Asado</string>
+    <string name="best_today">Hoy de %1$s a %2$s</string>
+    <string name="best_tomorrow">Mañana de %1$s a %2$s</string>
+    <string name="best_none">Hoy y mañana no hay un buen momento</string>
+    <string name="best_none_detail">Lluvia, viento o temperatura poco favorables en todas las horas.</string>
+    <string name="best_great">Condiciones muy buenas · %1$s de sensación, lluvia %2$s</string>
+    <string name="best_good">Condiciones aceptables · %1$s de sensación, lluvia %2$s</string>
+
+    <!-- Nieve y cordillera -->
+    <string name="section_snow">Nieve y cordillera</string>
+    <string name="label_freezing_level">Isoterma 0 °C</string>
+    <string name="label_snow_depth">Nieve en el suelo</string>
+    <string name="label_snow_week">Nieve 7 días</string>
+    <string name="label_snow_next">Próxima nevada</string>
+    <string name="snow_none">Sin nevadas</string>
+    <string name="snow_note">La isoterma 0 °C es la altura sobre el nivel del mar a la que la temperatura es 0 °C: por encima, lo que cae suele ser nieve.</string>
+
+    <!-- Mar -->
+    <string name="section_sea">Mar</string>
+    <string name="label_waves">Olas</string>
+    <string name="label_wave_period">Período</string>
+    <string name="label_sea_temp">Temperatura del agua</string>
+    <string name="label_waves_max">Olas máx. hoy</string>
+    <string name="fmt_seconds" translatable="false">%1$s s</string>
+
+    <!-- Luna -->
+    <string name="section_moon">Luna</string>
+    <string name="label_moon_phase">Fase</string>
+    <string name="label_moon_illumination">Iluminada</string>
+    <string name="label_moonrise">Salida</string>
+    <string name="label_moonset">Puesta</string>
+    <string name="moon_no_event">No ocurre hoy</string>
+    <string-array name="moon_phases">
+        <item>Luna nueva</item>
+        <item>Creciente</item>
+        <item>Cuarto creciente</item>
+        <item>Gibosa creciente</item>
+        <item>Luna llena</item>
+        <item>Gibosa menguante</item>
+        <item>Cuarto menguante</item>
+        <item>Menguante</item>
+    </string-array>
+
+    <!-- Detalle de día: nieve y luna -->
+    <string name="var_snow">Nieve</string>
+    <string name="label_moon">Luna</string>
+    <string name="label_moon_times">Luna sale / se pone</string>
+    <string name="info_snow_day">Nieve del día %1$s · isoterma entre %2$s y %3$s</string>
+    <string name="info_snow_day_no_level">Nieve del día %1$s</string>
+    <string name="info_snow_hour">%1$s · isoterma %2$s</string>
+    <string name="legend_snow">Nieve caída por hora</string>
+    <string name="best_peak">%1$s. Lo mejor, cerca de las %2$s</string>
 </resources>

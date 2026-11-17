@@ -15,24 +15,37 @@ public final class WeatherApi {
     private static final String HOURLY = "temperature_2m,apparent_temperature,relative_humidity_2m,"
             + "dew_point_2m,precipitation_probability,precipitation,weather_code,pressure_msl,"
             + "cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day";
+    private static final String HOURLY_SNOW = "snowfall,snow_depth,freezing_level_height";
     private static final String DAILY = "weather_code,temperature_2m_max,temperature_2m_min,sunrise,"
             + "sunset,uv_index_max,precipitation_sum,precipitation_probability_max,"
             + "wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant";
+    private static final String DAILY_SNOW = "snowfall_sum";
 
     private static final String AIR_BASE = "https://air-quality-api.open-meteo.com/v1/air-quality";
     private static final String AIR_CURRENT = "us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide";
     private static final String AIR_HOURLY = "us_aqi,pm2_5,pm10,ozone";
 
+    private static final String MARINE_BASE = "https://marine-api.open-meteo.com/v1/marine";
     private static final String ARCHIVE_BASE = "https://archive-api.open-meteo.com/v1/archive";
 
     private WeatherApi() {
     }
 
     static String forecastUrl(double lat, double lon, WeatherModel model) {
+        return forecastUrl(lat, lon, model, true);
+    }
+
+    /**
+     * @param extended false = sin las variables de nieve, por si el servicio llegara a rechazarlas
+     *                 (se agregaron después y no se pudieron verificar en vivo)
+     */
+    static String forecastUrl(double lat, double lon, WeatherModel model, boolean extended) {
+        String hourly = extended ? HOURLY + "," + HOURLY_SNOW : HOURLY;
+        String daily = extended ? DAILY + "," + DAILY_SNOW : DAILY;
         String url = String.format(Locale.US,
                 "%s?latitude=%.2f&longitude=%.2f&current=%s&hourly=%s&daily=%s"
                         + "&timezone=auto&forecast_days=%d",
-                BASE, lat, lon, CURRENT, HOURLY, DAILY, FORECAST_DAYS);
+                BASE, lat, lon, CURRENT, hourly, daily, FORECAST_DAYS);
         return model.apiId == null ? url : url + "&models=" + model.apiId;
     }
 
@@ -40,6 +53,19 @@ public final class WeatherApi {
         return String.format(Locale.US,
                 "%s?latitude=%.2f&longitude=%.2f&current=%s&hourly=%s&timezone=auto&forecast_days=5",
                 AIR_BASE, lat, lon, AIR_CURRENT, AIR_HOURLY);
+    }
+
+    static String marineUrl(double lat, double lon) {
+        return String.format(Locale.US,
+                "%s?latitude=%.2f&longitude=%.2f&current=wave_height,wave_period,wave_direction,"
+                        + "sea_surface_temperature&hourly=wave_height,wave_period,sea_surface_temperature"
+                        + "&timezone=auto&forecast_days=7",
+                MARINE_BASE, lat, lon);
+    }
+
+    /** Devuelve el JSON crudo del estado del mar (API aparte de Open-Meteo). */
+    public static String fetchMarine(double lat, double lon) throws IOException {
+        return Http.get(marineUrl(lat, lon));
     }
 
     /** URL para comparar modelos: mismas horas, una serie por modelo y variable. */
@@ -73,7 +99,14 @@ public final class WeatherApi {
 
     /** Devuelve el JSON crudo del pronóstico. Lanza IOException ante error de red o HTTP != 200. */
     public static String fetchForecast(double lat, double lon, WeatherModel model) throws IOException {
-        return Http.get(forecastUrl(lat, lon, model));
+        try {
+            return Http.get(forecastUrl(lat, lon, model, true));
+        } catch (ApiException e) {
+            // 400 = parámetro no aceptado (por ejemplo una variable que un modelo no conoce):
+            // se repite sin las variables de nieve, que son las únicas opcionales.
+            if (e.status != 400) throw e;
+            return Http.get(forecastUrl(lat, lon, model, false));
+        }
     }
 
     /** Devuelve el JSON crudo de calidad del aire (API aparte de Open-Meteo). */
