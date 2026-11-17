@@ -127,8 +127,10 @@ public class SunArcView extends View {
         canvas.drawPath(path, curvePaint);
 
         // Tramo de día ya recorrido, con el área bajo la curva.
-        if (validSun() && now > sunrise) {
-            long end = Math.min(now, sunset);
+        // Hoy: el tramo ya recorrido. Otro día: todo el tramo con luz.
+        boolean today = now >= dayStart && now < dayStart + DAY_MS;
+        if (validSun() && (!today || now > sunrise)) {
+            long end = today ? Math.min(now, sunset) : sunset;
             path.reset();
             path.moveTo(x(sunrise, left, w, rtl), horizonY);
             int steps = Math.max(2, (int) (STEPS * (end - sunrise) / DAY_MS));

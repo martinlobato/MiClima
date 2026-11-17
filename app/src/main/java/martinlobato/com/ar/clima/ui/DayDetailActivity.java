@@ -20,7 +20,6 @@ import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.widget.ImageViewCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.color.MaterialColors;
@@ -264,14 +263,6 @@ public class DayDetailActivity extends AppCompatActivity {
         CellGrid.addRow(binding.gridSummary,
                 R.string.label_wind_max, windText(d.windMax[dayIndex], d.windDirDominant[dayIndex]),
                 R.string.label_gusts, kmh(d.gustsMax[dayIndex]));
-        Moon.Phase moonPhase = Moon.phase(d.time[dayIndex] + 12 * DateUtils.HOUR_IN_MILLIS);
-        Moon.Times moonTimes = Moon.times(d.time[dayIndex], forecast.latitude, forecast.longitude);
-        CellGrid.addRow(binding.gridSummary,
-                R.string.label_moon, getString(R.string.fmt_info,
-                        getResources().getStringArray(R.array.moon_phases)[moonPhase.index()],
-                        UnitFormat.percent(moonPhase.illumination * 100)),
-                R.string.label_moon_times, (moonTimes.rise > 0 ? hourFmt.format(new Date(moonTimes.rise)) : Fmt.DASH)
-                        + " / " + (moonTimes.set > 0 ? hourFmt.format(new Date(moonTimes.set)) : Fmt.DASH));
         ClimateNormals n = normals;
         if (n != null) {
             java.util.Calendar cal = java.util.Calendar.getInstance(forecast.timeZone());
@@ -282,9 +273,22 @@ public class DayDetailActivity extends AppCompatActivity {
                     R.string.label_normal_max, normalCell(n.maxFor(month, day), d.tempMax[dayIndex]),
                     R.string.label_normal_min, normalCell(n.minFor(month, day), d.tempMin[dayIndex]));
         }
-        CellGrid.addRow(binding.gridSummary,
-                R.string.label_sunrise, sunrise > 0 ? hourFmt.format(new Date(sunrise)) : Fmt.DASH,
-                R.string.label_sunset, sunset > 0 ? hourFmt.format(new Date(sunset)) : Fmt.DASH);
+
+        // Sol y luna del día: los mismos gráficos que en Inicio.
+        binding.daySunArc.setDay(d.time[dayIndex], sunrise, sunset, System.currentTimeMillis());
+        binding.tvDaySunrise.setText(getString(R.string.fmt_sunrise_short,
+                sunrise > 0 ? hourFmt.format(new Date(sunrise)) : Fmt.DASH));
+        binding.tvDaySunset.setText(getString(R.string.fmt_sunset_short,
+                sunset > 0 ? hourFmt.format(new Date(sunset)) : Fmt.DASH));
+        Moon.Phase moonPhase = Moon.phase(d.time[dayIndex] + 12 * DateUtils.HOUR_IN_MILLIS);
+        Moon.Times moonTimes = Moon.times(d.time[dayIndex], forecast.latitude, forecast.longitude);
+        binding.dayMoon.setPhase(moonPhase.cycle, forecast.latitude);
+        binding.tvDayMoonPhase.setText(getString(R.string.fmt_info,
+                getResources().getStringArray(R.array.moon_phases)[moonPhase.index()],
+                getString(R.string.fmt_moon_illuminated, UnitFormat.percent(moonPhase.illumination * 100))));
+        binding.tvDayMoonTimes.setText(getString(R.string.fmt_moon_times,
+                moonTimes.rise > 0 ? hourFmt.format(new Date(moonTimes.rise)) : Fmt.DASH,
+                moonTimes.set > 0 ? hourFmt.format(new Date(moonTimes.set)) : Fmt.DASH));
     }
 
     /** "24° (+3°)": el valor normal y cuánto se aparta el pronóstico de ese día. */
@@ -546,7 +550,6 @@ public class DayDetailActivity extends AppCompatActivity {
             icon.setLayoutParams(new LinearLayout.LayoutParams(dp(22), dp(22)));
             icon.setImageResource(WeatherCode.icon(h.code[i], h.isDay[i]));
             icon.setContentDescription(getString(WeatherCode.description(h.code[i])));
-            ImageViewCompat.setImageTintList(icon, ColorStateList.valueOf(onSurface));
             fixed.addView(icon);
             View spacer = new View(this);
             spacer.setLayoutParams(new LinearLayout.LayoutParams(dp(12), 1));

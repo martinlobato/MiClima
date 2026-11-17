@@ -71,21 +71,35 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
   `ui/PlacesActivity` (la búsqueda con el buscador enfocado). Al volver de Ajustes la pantalla se
   recrea; al volver de Lugares se rearman las páginas. Las vistas que se desplazan en horizontal
   dentro de una página (tira horaria, chips) van envueltas en `ui/NestedScrollableHost`.
-- `ui/HomeFragment.newInstance(placeId)`: tarjeta actual, tira horaria de 16 días (`HourlyAdapter`, con fichas
-  separadoras por día y rótulo del día visible), grilla "Ahora", lista de días con `RangeBarView`
-  (tocar un día, o una ficha de día en la tira, abre su detalle) y tarjeta de sol.
+- `ui/HomeFragment.newInstance(placeId)`, en este orden: tarjeta actual, "Lluvia · próximas 24 h"
+  (`RainBarsView`, barras de probabilidad más intensas cuantos más mm, con un resumen), tira horaria
+  de 16 días (`HourlyAdapter`, con fichas separadoras por día, rótulo del día visible y la línea de
+  temperatura `TempLineView`: cada ficha dibuja su tramo con el rango de su día), lista de días
+  (`RangeBarView` con degradé de `TempColors`; % de lluvia solo desde 20 %, en negrita desde 60 %;
+  tocar un día, o una ficha de día en la tira, abre su detalle), grilla "Ahora", mejor momento,
+  aire, nieve, mar, sol y luna.
+- Gráficos de Inicio, todos Canvas propio: cada celda de la grilla "Ahora" y del aire lleva un
+  `GaugeView` (anillo, arco con escala UV/viento, brújula que apunta hacia donde va el viento,
+  medidor de presión con flecha de tendencia contra 3 h antes, barra, termómetro y vaso de lluvia;
+  `CellGrid.addRow` devuelve las celdas para configurarlo). "Mejor momento" suma `ScoreStripView`
+  (puntaje por hora de rojo a verde, mejor tramo enmarcado), "Nieve y cordillera" `SnowLineView`
+  (perfil de montaña nevado sobre la isoterma 0 °C) y "Mar" `WaveView`.
+- Íconos de clima a color propio (`@color/wx_*`, con variante nocturna; no siguen la paleta). No
+  se les pone tinte salvo en el widget de bloqueo, que va en blanco.
 - Sol y luna en Inicio son gráficos: `ui/SunArcView` (onda de las 24 h que cruza el horizonte en
   la salida y la puesta, tramo recorrido en amarillo y el sol en la hora actual) con salida y
   atardecer grandes, más duración del día y UV en celdas; `ui/MoonPhaseView` (disco con la parte
   iluminada según `Moon.Phase.cycle`, espejado en el hemisferio sur) con fase, % iluminado y
   salida/puesta ordenadas según cuál ocurre primero.
-- `ui/DayDetailActivity`: detalle de un día sobre la caché (sin red). Resumen, chips de variable
+- `ui/DayDetailActivity`: detalle de un día sobre la caché (sin red). Resumen, tarjeta "Sol y luna"
+  (`SunArcView` y `MoonPhaseView` de ese día; en otro día se resalta todo el tramo de luz), chips de variable
   (temperatura, lluvia, viento, UV, humedad, presión), gráfico `HourlyChartView` (Canvas propio:
   línea con área o barras, serie secundaria punteada, selección al tocar/arrastrar; la escala
   sale de `util/ChartScale`) y tabla hora por hora de 12 columnas con la hora fija a la izquierda.
   Flechas para pasar al día anterior/siguiente.
 - `ui/ModelCompareActivity`: se abre desde el detalle de día; una línea por modelo
-  (`HourlyChartView.setComparison`), cuánto difieren y una fila por modelo con el resumen del
+  (`HourlyChartView.setComparison`, con el nombre de cada modelo al final de su línea vía
+  `setLineNames` para no depender solo del color), cuánto difieren y una fila por modelo con el resumen del
   día o el valor de la hora seleccionada.
 - Inicio muestra bajo la tarjeta principal cuánto se aparta la máxima de hoy de lo normal, y el
   detalle de día suma las celdas "Máx./Mín. normal" (solo si los normales ya están guardados).
@@ -136,7 +150,7 @@ generar el `.aab` firmado.
 
 ## Pendiente
 
-- Rehacer las capturas de `store_assets/capturas/` con la navegación nueva (hoy muestran la barra
-  inferior vieja con pestañas).
+- Rehacer las capturas de `store_assets/capturas/` con la navegación y los gráficos nuevos (hoy
+  muestran la barra inferior vieja con pestañas).
 - Verificar en un teléfono: widgets, segundo plano, aviso de lluvia, alertas y resumen diario.
 - Verificar contra la API las variables de nieve (hay respaldo si las rechaza).

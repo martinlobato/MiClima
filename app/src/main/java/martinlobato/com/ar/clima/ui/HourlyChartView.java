@@ -59,6 +59,9 @@ public class HourlyChartView extends View {
     @Nullable
     private double[][] lines;
     private int[] lineColors = new int[0];
+    /** Nombre de cada línea de la comparación, escrito al final de la línea (null = sin nombres). */
+    @Nullable
+    private String[] lineNames;
     private final Paint comparePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int nowIndex = -1;
     private int selected = -1;
@@ -133,6 +136,16 @@ public class HourlyChartView extends View {
                 axisFormatter, nowIndex);
         this.lines = lines;
         this.lineColors = colors;
+        this.lineNames = null;
+        invalidate();
+    }
+
+    /**
+     * Nombres de las líneas de la comparación: se escriben a la derecha, a la altura donde
+     * termina cada una, para no depender solo del color.
+     */
+    public void setLineNames(@Nullable String[] names) {
+        this.lineNames = names;
         invalidate();
     }
 
@@ -155,7 +168,12 @@ public class HourlyChartView extends View {
     }
 
     private float plotRight() {
-        return getWidth() - getPaddingRight() - 4 * density;
+        float names = 0;
+        if (lines != null && lineNames != null) {
+            for (String n : lineNames) names = Math.max(names, labelPaint.measureText(n));
+            names += 8 * density;
+        }
+        return getWidth() - getPaddingRight() - 4 * density - names;
     }
 
     private float plotTop() {
@@ -213,6 +231,7 @@ public class HourlyChartView extends View {
                 comparePaint.setColor(lineColors[i % lineColors.length]);
                 drawLine(canvas, lines[i], comparePaint, left, right, top, bottom);
             }
+            if (lineNames != null) drawLineNames(canvas, left, right, top, bottom);
         } else if (bars) {
             drawBars(canvas, left, right, top, bottom);
         } else {
@@ -238,6 +257,42 @@ public class HourlyChartView extends View {
                 canvas.drawCircle(x, y, 2.5f * density, dotCorePaint);
             }
         }
+    }
+
+    /** Escribe el nombre de cada línea al final, separando los que quedarían encimados. */
+    private void drawLineNames(Canvas canvas, float left, float right, float top, float bottom) {
+        int count = Math.min(lines.length, lineNames.length);
+        float[] ys = new float[count];
+        Integer[] order = new Integer[count];
+        for (int i = 0; i < count; i++) {
+            order[i] = i;
+            ys[i] = Float.NaN;
+            double[] series = lines[i];
+            for (int k = Math.min(series.length, values.length) - 1; k >= 0; k--) {
+                if (!Double.isNaN(series[k])) {
+                    ys[i] = yOf(series[k], top, bottom);
+                    break;
+                }
+            }
+        }
+        java.util.Arrays.sort(order, (a, b) -> Float.compare(
+                Float.isNaN(ys[a]) ? Float.MAX_VALUE : ys[a], Float.isNaN(ys[b]) ? Float.MAX_VALUE : ys[b]));
+        float lineH = labelPaint.getTextSize() + 2 * density;
+        float textOffset = -(labelPaint.ascent() + labelPaint.descent()) / 2f;
+        float last = -Float.MAX_VALUE;
+        int oldColor = labelPaint.getColor();
+        boolean oldBold = labelPaint.isFakeBoldText();
+        labelPaint.setTextAlign(Paint.Align.LEFT);
+        labelPaint.setFakeBoldText(true);
+        for (int idx : order) {
+            if (Float.isNaN(ys[idx])) continue;
+            float y = Math.max(ys[idx], last + lineH);
+            last = y;
+            labelPaint.setColor(lineColors[idx % lineColors.length]);
+            canvas.drawText(lineNames[idx], right + 6 * density, y + textOffset, labelPaint);
+        }
+        labelPaint.setColor(oldColor);
+        labelPaint.setFakeBoldText(oldBold);
     }
 
     private void drawBars(Canvas canvas, float left, float right, float top, float bottom) {

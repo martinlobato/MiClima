@@ -22,6 +22,9 @@ public class RangeBarView extends View {
     private final RectF rect = new RectF();
     private float start;
     private float end = 1f;
+    private int startColor;
+    private int endColor;
+    private boolean gradient;
 
     public RangeBarView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -40,6 +43,14 @@ public class RangeBarView extends View {
             start = clamp((float) ((min - globalMin) / span));
             end = clamp((float) ((max - globalMin) / span));
         }
+        invalidate();
+    }
+
+    /** Degradé de la mínima a la máxima (colores de {@link TempColors}). */
+    public void setColors(int fromColor, int toColor) {
+        startColor = fromColor;
+        endColor = toColor;
+        gradient = true;
         invalidate();
     }
 
@@ -69,6 +80,12 @@ public class RangeBarView extends View {
         } else {
             rect.set(left, 0, right, h);
         }
+        if (gradient) {
+            barPaint.setShader(new android.graphics.LinearGradient(rect.left, 0, rect.right, 0,
+                    rtl ? endColor : startColor, rtl ? startColor : endColor,
+                    android.graphics.Shader.TileMode.CLAMP));
+        }
         canvas.drawRoundRect(rect, r, r, barPaint);
+        barPaint.setShader(null);
     }
 }

@@ -12,8 +12,11 @@ final class CellGrid {
     private CellGrid() {
     }
 
-    /** Agrega una fila de dos celdas a {@code grid}. */
-    static void addRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
+    /**
+     * Agrega una fila de dos celdas a {@code grid} y las devuelve, para poder sumarles su mini
+     * gráfico ({@code gauge}).
+     */
+    static ItemDataCellBinding[] addRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
         LayoutInflater inflater = LayoutInflater.from(grid.getContext());
         float density = grid.getResources().getDisplayMetrics().density;
         LinearLayout row = new LinearLayout(grid.getContext());
@@ -25,12 +28,13 @@ final class CellGrid {
         }
         row.setLayoutParams(rowParams);
         int gap = Math.round(5 * density);
-        addCell(inflater, row, label1, value1, 0, gap);
-        addCell(inflater, row, label2, value2, gap, 0);
+        ItemDataCellBinding a = addCell(inflater, row, label1, value1, 0, gap);
+        ItemDataCellBinding b = addCell(inflater, row, label2, value2, gap, 0);
         grid.addView(row);
+        return new ItemDataCellBinding[]{a, b};
     }
 
-    private static void addCell(LayoutInflater inflater, LinearLayout row, int labelRes, String value,
+    private static ItemDataCellBinding addCell(LayoutInflater inflater, LinearLayout row, int labelRes, String value,
                                 int marginStart, int marginEnd) {
         ItemDataCellBinding cell = ItemDataCellBinding.inflate(inflater, row, false);
         cell.tvLabel.setText(labelRes);
@@ -39,5 +43,6 @@ final class CellGrid {
         lp.setMarginStart(marginStart);
         lp.setMarginEnd(marginEnd);
         row.addView(cell.getRoot());
+        return cell;
     }
 }

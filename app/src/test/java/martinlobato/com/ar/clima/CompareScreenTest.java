@@ -101,8 +101,8 @@ public class CompareScreenTest {
             settle();
             scenario.onActivity(a -> {
                 LinearLayout grid = a.findViewById(R.id.gridSummary);
-                // Tres filas de siempre + luna + normales.
-                assertEquals(5, grid.getChildCount());
+                // Dos filas de siempre + normales (sol y luna van en su propia tarjeta).
+                assertEquals(3, grid.getChildCount());
                 String all = allText(grid);
                 assertTrue(all, all.contains("20° ("));
                 assertTrue(all, all.contains("10° ("));

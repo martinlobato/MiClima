@@ -362,4 +362,20 @@
     <string name="places_open_map">Ver en Google Maps</string>
     <string name="places_no_maps">No hay una app de mapas instalada.</string>
     <string name="fmt_place_time">%1$s · hora local</string>
+
+    <!-- Gráficos (rediseño) -->
+    <string name="label_rain_next_hour">Lluvia próx. hora</string>
+    <string name="section_rain_soon">Lluvia · próximas 24 h</string>
+    <string name="rain_soon_none">Sin lluvia a la vista en las próximas %1$d h</string>
+    <string name="rain_soon_now">Llueve ahora · %1$s en total</string>
+    <string name="rain_soon_from">Lluvia probable desde las %1$s · %2$s en total</string>
+    <string name="best_strip_note">Verde: buenas condiciones · rojo: malas. Enmarcado, el mejor tramo.</string>
+    <string name="fmt_freezing_label">0 °C · %1$s</string>
+    <string name="fmt_rain_drop">💧%1$s</string>
+    <string name="label_sun_moon">Sol y luna</string>
+    <string name="place_no_data">Sin datos todavía</string>
+    <string name="palette_auto_desc">Colores del fondo de pantalla</string>
+    <string name="fmt_sunrise_short">☀ Sale %1$s</string>
+    <string name="fmt_sunset_short">Se pone %1$s</string>
+    <string name="fmt_moon_times">Sale %1$s · se pone %2$s</string>
 </resources>

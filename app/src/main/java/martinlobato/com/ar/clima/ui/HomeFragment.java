@@ -14,6 +14,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,6 +39,7 @@ import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.FragmentHomeBinding;
 import martinlobato.com.ar.clima.databinding.ItemDailyBinding;
+import martinlobato.com.ar.clima.databinding.ItemDataCellBinding;
 import martinlobato.com.ar.clima.databinding.ItemHourBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
 import martinlobato.com.ar.clima.util.Fmt;
@@ -337,25 +339,53 @@ public class HomeFragment extends Fragment {
         String[] compass = getResources().getStringArray(R.array.compass_points);
         String[] uvLevels = getResources().getStringArray(R.array.uv_levels);
         double uv = h.uv[hourIdx];
+        int rainColor = ContextCompat.getColor(requireContext(), R.color.wx_rain);
+        int cloudColor = ContextCompat.getColor(requireContext(), R.color.wx_cloud);
+        int primary = MaterialColors.getColor(binding.getRoot(), androidx.appcompat.R.attr.colorPrimary);
+        // La presión sube o baja: se compara con 3 h antes (±1 hPa para no marcar ruido).
+        int trend = 0;
+        if (hourIdx >= 3 && !Double.isNaN(pressure) && !Double.isNaN(h.pressure[hourIdx - 3])) {
+            double delta = pressure - h.pressure[hourIdx - 3];
+            trend = delta >= 1 ? 1 : delta <= -1 ? -1 : 0;
+        }
+        String pressureText = uf.pressure(pressure)
+                + (trend > 0 ? " ↑" : trend < 0 ? " ↓" : "");
+        double rainNext = h.precipProb[Math.min(hourIdx + 1, h.size() - 1)];
+        double visKm = h.visibility[hourIdx] / 1000.0;
+
         binding.gridDetails.removeAllViews();
-        addCellRow(binding.gridDetails,
-                R.string.label_feels_like, uf.temp(apparent),
+        // La sensación ya está en la tarjeta principal: acá va la probabilidad de lluvia.
+        ItemDataCellBinding[] r = addCellRow(binding.gridDetails,
+                R.string.label_rain_next_hour, UnitFormat.percent(rainNext),
                 R.string.label_humidity, UnitFormat.percent(humidity));
-        addCellRow(binding.gridDetails,
+        r[0].gauge.set(GaugeView.Mode.RING, rainNext / 100, rainColor);
+        r[1].gauge.set(GaugeView.Mode.RING, humidity / 100, primary);
+        r = addCellRow(binding.gridDetails,
                 R.string.label_wind, Double.isNaN(wind) || Double.isNaN(windDir) ? uf.wind(wind)
                         : uf.wind(wind) + " " + compass[Fmt.compassIndex(windDir)],
                 R.string.label_gusts, uf.wind(gusts));
-        addCellRow(binding.gridDetails,
+        r[0].gauge.setCompass(windDir);
+        r[1].gauge.setScale(gusts / 100, GaugeView.WIND_COLORS, GaugeView.WIND_STOPS);
+        r = addCellRow(binding.gridDetails,
                 R.string.label_uv, Double.isNaN(uv) ? Fmt.DASH
                         : getString(R.string.fmt_uv, Fmt.round(uv), uvLevels[Fmt.uvLevel(uv)]),
-                R.string.label_pressure, uf.pressure(pressure));
-        addCellRow(binding.gridDetails,
-                R.string.label_visibility, uf.distance(h.visibility[hourIdx] / 1000.0),
+                R.string.label_pressure, pressureText);
+        r[0].gauge.setScale(uv / 11, GaugeView.UV_COLORS, GaugeView.UV_STOPS);
+        r[1].gauge.set(GaugeView.Mode.NEEDLE, (pressure - 980) / 60, primary).setTrend(trend);
+        r = addCellRow(binding.gridDetails,
+                R.string.label_visibility, uf.distance(visKm),
                 R.string.label_dew_point, uf.temp(h.dewPoint[hourIdx]));
-        addCellRow(binding.gridDetails,
+        r[0].gauge.set(GaugeView.Mode.BAR, visKm / 20, primary);
+        r[1].gauge.set(GaugeView.Mode.THERMO, TempColors.fraction(h.dewPoint[hourIdx]),
+                TempColors.forCelsius(h.dewPoint[hourIdx]));
+        r = addCellRow(binding.gridDetails,
                 R.string.label_cloud_cover, UnitFormat.percent(cloud),
                 R.string.label_precip_today, uf.precip(d.precipSum[dayIdx]));
+        r[0].gauge.set(GaugeView.Mode.RING, cloud / 100, cloudColor);
+        // El vaso se llena con 20 mm (lluvia fuerte para un día).
+        r[1].gauge.set(GaugeView.Mode.GLASS, d.precipSum[dayIdx] / 20, rainColor);
 
+        renderRainSoon(f, hourIdx);
         renderNormal();
         loadNormals();
         renderBest(f, now);
@@ -473,10 +503,35 @@ public class HomeFragment extends Fragment {
                         hourFmt.format(new Date(f.hourly.time[first + w.peak])));
             }
             binding.tvBestDetail.setText(detail);
+            renderBestStrip(f, activity, first, end, from - first, to - first);
             return;
         }
         binding.tvBestTitle.setText(R.string.best_none);
         binding.tvBestDetail.setText(R.string.best_none_detail);
+        int first = f.hourIndexAt(now);
+        renderBestStrip(f, activity, first, Math.min(f.hourly.size(), first + 24), -1, -1);
+    }
+
+    /** Franja de puntajes por hora de [first, end), con el mejor tramo [from, to) enmarcado. */
+    private void renderBestStrip(Forecast f, ActivityAdvisor.Activity activity, int first, int end,
+                                 int from, int to) {
+        // Al menos 12 casillas: si queda poco del día, se completa con las horas siguientes.
+        end = Math.min(f.hourly.size(), Math.max(end, first + 12));
+        if (end <= first) {
+            binding.bestStrip.setVisibility(View.GONE);
+            binding.tvBestStripNote.setVisibility(View.GONE);
+            return;
+        }
+        ActivityAdvisor.Hour[] hours = advisorHours(f, first, end);
+        int[] scores = new int[hours.length];
+        String[] labels = new String[hours.length];
+        for (int k = 0; k < hours.length; k++) {
+            scores[k] = ActivityAdvisor.score(activity, hours[k]);
+            if (hours[k].hourOfDay % 6 == 0) labels[k] = String.format(Locale.getDefault(), "%02d", hours[k].hourOfDay);
+        }
+        binding.bestStrip.setData(scores, labels, from, to);
+        binding.bestStrip.setVisibility(View.VISIBLE);
+        binding.tvBestStripNote.setVisibility(View.VISIBLE);
     }
 
     // ---------------------------------------------------------------- nieve y cordillera
@@ -506,6 +561,9 @@ public class HomeFragment extends Fragment {
             }
         }
         double depthCm = h.snowDepth[hourIdx] * 100;
+        double freezing = h.freezingLevel[hourIdx];
+        binding.snowLine.setFreezingLevel(freezing, Double.isNaN(freezing) ? ""
+                : getString(R.string.fmt_freezing_label, uf.altitude(freezing)));
         binding.gridSnow.removeAllViews();
         addCellRow(binding.gridSnow,
                 R.string.label_freezing_level, uf.altitude(h.freezingLevel[hourIdx]),
@@ -558,6 +616,7 @@ public class HomeFragment extends Fragment {
         String waves = Double.isNaN(direction) ? uf.waveHeight(height)
                 : uf.waveHeight(height) + " " + compass[Fmt.compassIndex(direction)];
         binding.sectionSea.setVisibility(View.VISIBLE);
+        binding.waveView.setWaveHeight(height);
         binding.gridSea.removeAllViews();
         addCellRow(binding.gridSea,
                 R.string.label_waves, waves,
@@ -676,12 +735,79 @@ public class HomeFragment extends Fragment {
         binding.tvAqiLevel.setText(getResources().getStringArray(R.array.aqi_levels)[Fmt.aqiLevel(aqi)]);
         binding.aqiBar.setAqi(aqi);
         binding.gridAir.removeAllViews();
-        addCellRow(binding.gridAir, R.string.label_pm25, ugm3(pm25), R.string.label_pm10, ugm3(pm10));
-        addCellRow(binding.gridAir, R.string.label_ozone, ugm3(ozone), R.string.label_no2, ugm3(no2));
+        // Anillo contra la guía de la OMS (24 h / 8 h): lleno = el doble de la guía.
+        ItemDataCellBinding[] r = addCellRow(binding.gridAir,
+                R.string.label_pm25, ugm3(pm25), R.string.label_pm10, ugm3(pm10));
+        pollutantGauge(r[0], pm25, 15);
+        pollutantGauge(r[1], pm10, 45);
+        r = addCellRow(binding.gridAir, R.string.label_ozone, ugm3(ozone), R.string.label_no2, ugm3(no2));
+        pollutantGauge(r[0], ozone, 100);
+        pollutantGauge(r[1], no2, 25);
+    }
+
+    /** Verde bajo la guía, amarillo hasta el doble, rojo por encima. */
+    private static void pollutantGauge(ItemDataCellBinding cell, double value, double guideline) {
+        int color = value <= guideline ? 0xFF3BA55C : value <= 2 * guideline ? 0xFFF2A93B : 0xFFE0453A;
+        cell.gauge.set(GaugeView.Mode.RING, value / (2 * guideline), color);
     }
 
     private String ugm3(double value) {
         return Double.isNaN(value) ? Fmt.DASH : getString(R.string.fmt_ugm3, Fmt.round(value));
+    }
+
+    /**
+     * Porcentaje de lluvia de la lista de días: bajo 20 % no se muestra, desde 60 % va resaltado.
+     */
+    private void styleRain(android.widget.TextView tv, double prob) {
+        if (Double.isNaN(prob) || prob < 20) {
+            tv.setText("");
+            return;
+        }
+        tv.setText(getString(R.string.fmt_rain_drop, UnitFormat.percent(prob)));
+        tv.setTextColor(ContextCompat.getColor(requireContext(), R.color.wx_rain));
+        tv.setAlpha(prob >= 60 ? 1f : 0.8f);
+        tv.setTypeface(null, prob >= 60 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+    }
+
+    // ---------------------------------------------------------------- lluvia próxima
+
+    private static final int RAIN_HOURS = 24;
+
+    private void renderRainSoon(Forecast f, int hourIdx) {
+        Forecast.Hourly h = f.hourly;
+        int n = Math.min(RAIN_HOURS, h.size() - hourIdx);
+        if (n <= 0) {
+            binding.cardRainSoon.setVisibility(View.GONE);
+            return;
+        }
+        double[] prob = new double[n];
+        double[] mm = new double[n];
+        String[] labels = new String[n];
+        SimpleDateFormat hourFmt = new SimpleDateFormat("HH", Locale.getDefault());
+        hourFmt.setTimeZone(f.timeZone());
+        int first = -1;
+        double total = 0;
+        for (int k = 0; k < n; k++) {
+            int i = hourIdx + k;
+            prob[k] = h.precipProb[i];
+            mm[k] = h.precip[i];
+            if (k % 3 == 0) labels[k] = k == 0 ? getString(R.string.now) : hourFmt.format(new Date(h.time[i]));
+            if (first < 0 && (h.precipProb[i] >= 50 || h.precip[i] >= 0.5)) first = k;
+            if (!Double.isNaN(h.precip[i])) total += h.precip[i];
+        }
+        binding.rainBars.setData(prob, mm, labels);
+        String summary;
+        if (first < 0) {
+            summary = getString(R.string.rain_soon_none, n);
+        } else if (first == 0) {
+            summary = getString(R.string.rain_soon_now, uf.precip(total));
+        } else {
+            SimpleDateFormat fmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            fmt.setTimeZone(f.timeZone());
+            summary = getString(R.string.rain_soon_from, fmt.format(new Date(h.time[hourIdx + first])), uf.precip(total));
+        }
+        binding.tvRainSoon.setText(summary);
+        binding.cardRainSoon.setVisibility(View.VISIBLE);
     }
 
     private void renderDaily(final Forecast f, int todayIdx) {
@@ -705,11 +831,11 @@ public class HomeFragment extends Fragment {
                     : dayFmt.format(new Date(d.time[i])).replace(".", ""));
             row.ivIcon.setImageResource(WeatherCode.icon(d.code[i], true));
             row.ivIcon.setContentDescription(getString(WeatherCode.description(d.code[i])));
-            row.tvRain.setText(Double.isNaN(d.precipProbMax[i]) ? "" : UnitFormat.percent(d.precipProbMax[i]));
-            row.tvRain.setAlpha(d.precipProbMax[i] >= 20 ? 1f : 0.45f);
+            styleRain(row.tvRain, d.precipProbMax[i]);
             row.tvMin.setText(uf.temp(d.tempMin[i]));
             row.tvMax.setText(uf.temp(d.tempMax[i]));
             row.rangeBar.setRange(d.tempMin[i], d.tempMax[i], globalMin, globalMax);
+            row.rangeBar.setColors(TempColors.forCelsius(d.tempMin[i]), TempColors.forCelsius(d.tempMax[i]));
             final long dayTime = d.time[i];
             row.dailyRoot.setOnClickListener(v -> openDay(dayTime));
             binding.listDaily.addView(row.getRoot());
@@ -764,8 +890,8 @@ public class HomeFragment extends Fragment {
                         getResources().getStringArray(R.array.uv_levels)[Fmt.uvLevel(f.daily.uvMax[dayIdx])]));
     }
 
-    private static void addCellRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
-        CellGrid.addRow(grid, label1, value1, label2, value2);
+    private static ItemDataCellBinding[] addCellRow(LinearLayout grid, int label1, String value1, int label2, String value2) {
+        return CellGrid.addRow(grid, label1, value1, label2, value2);
     }
 
     @Override

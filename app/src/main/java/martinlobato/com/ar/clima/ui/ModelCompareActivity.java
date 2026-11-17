@@ -329,6 +329,13 @@ public class ModelCompareActivity extends AppCompatActivity {
             axis = variable == Variable.WIND ? uf::windAxis : Fmt::oneDecimal;
         }
         binding.chart.setComparison(lines, MODEL_COLORS, labels, scale, axis, nowIndex);
+        String[] names = new String[ModelComparison.MODELS.length];
+        for (int m = 0; m < names.length; m++) {
+            String label = ModelComparison.MODELS[m].label;
+            // "Météo-France" no entra al costado del gráfico: se abrevia.
+            names[m] = label.length() > 6 ? label.substring(0, 5) + "." : label;
+        }
+        binding.chart.setLineNames(names);
         binding.chart.setContentDescription(getString(variable.labelRes));
         renderModels(-1);
     }

@@ -5,13 +5,13 @@
     android:viewportHeight="24">
     <path
         android:pathData="M6,16.326A7,7 0 1 1 15.71,8h1.79a4.5,4.5 0 0 1 0.5,8.973"
-        android:strokeColor="@android:color/black"
+        android:strokeColor="@color/wx_cloud"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="1.8" />
     <path
         android:pathData="M13,12l-3,5h4l-3,5"
-        android:strokeColor="@android:color/black"
+        android:strokeColor="@color/wx_bolt"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="1.8" />

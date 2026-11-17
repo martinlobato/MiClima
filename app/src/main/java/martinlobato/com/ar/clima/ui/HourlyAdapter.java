@@ -34,6 +34,10 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private final List<Integer> rows = new ArrayList<>();
     private Forecast forecast;
     private int nowIndex;
+    /** Rango de la línea de temperatura del día de cada hora (índice horario). */
+    private double[] dayMin = new double[0];
+    private double[] dayMax = new double[0];
+    private int[] dayOf = new int[0];
     private UnitFormat units = UnitFormat.metric();
     private OnDayClickListener dayClickListener;
 
@@ -59,6 +63,43 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         hourFmt.setTimeZone(f.timeZone());
         dayNameFmt.setTimeZone(f.timeZone());
         dayNumberFmt.setTimeZone(f.timeZone());
+
+        // Rango de la línea de temperatura: el de cada día (así se ve cómo sube y baja en el
+        // día), con al menos 8° de margen para que un día parejo no parezca una montaña rusa.
+        int n = f.hourly.size();
+        dayMin = new double[n];
+        dayMax = new double[n];
+        dayOf = new int[n];
+        Calendar dc = Calendar.getInstance(f.timeZone());
+        int start = 0;
+        for (int i = 0; i <= n; i++) {
+            int day = -1;
+            if (i < n) {
+                dc.setTimeInMillis(f.hourly.time[i]);
+                day = dc.get(Calendar.YEAR) * 1000 + dc.get(Calendar.DAY_OF_YEAR);
+                dayOf[i] = day;
+            }
+            if (i == n || (i > start && day != dayOf[start])) {
+                double lo = Double.NaN;
+                double hi = Double.NaN;
+                for (int k = start; k < i; k++) {
+                    double t = f.hourly.temp[k];
+                    if (Double.isNaN(t)) continue;
+                    if (!(t >= lo)) lo = t;
+                    if (!(t <= hi)) hi = t;
+                }
+                if (hi - lo < 8) {
+                    double mid = (hi + lo) / 2;
+                    lo = mid - 4;
+                    hi = mid + 4;
+                }
+                for (int k = start; k < i; k++) {
+                    dayMin[k] = lo;
+                    dayMax[k] = hi;
+                }
+                start = i;
+            }
+        }
 
         rows.clear();
         Calendar cal = Calendar.getInstance(f.timeZone());
@@ -127,9 +168,16 @@ public class HourlyAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         b.ivIcon.setImageResource(WeatherCode.icon(h.code[i], h.isDay[i]));
         b.ivIcon.setContentDescription(ctx.getString(WeatherCode.description(h.code[i])));
         b.tvTemp.setText(units.temp(h.temp[i]));
+        // La línea se corta en el cambio de día (ahí va la ficha separadora).
+        boolean hasPrev = i > nowIndex && dayOf[i - 1] == dayOf[i];
+        boolean hasNext = i + 1 < h.size() && dayOf[i + 1] == dayOf[i];
+        b.tempLine.set(hasPrev ? h.temp[i - 1] : Double.NaN, h.temp[i],
+                hasNext ? h.temp[i + 1] : Double.NaN, dayMin[i], dayMax[i]);
         b.tvRain.setText(Double.isNaN(h.precipProb[i]) ? "" : UnitFormat.percent(h.precipProb[i]));
-        // Sin lluvia probable el porcentaje se atenúa para que resalten las horas con lluvia.
-        b.tvRain.setAlpha(h.precipProb[i] >= 20 ? 1f : 0.45f);
+        // Sin lluvia probable el porcentaje se atenúa; con lluvia muy probable, en negrita.
+        double p = h.precipProb[i];
+        b.tvRain.setAlpha(p >= 20 ? 1f : 0.4f);
+        b.tvRain.setTypeface(null, p >= 60 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         b.tvWind.setText(Double.isNaN(h.wind[i]) ? "" : units.wind(h.wind[i]));
     }
 

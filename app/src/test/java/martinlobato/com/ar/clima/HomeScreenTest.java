@@ -26,7 +26,7 @@ import org.robolectric.annotation.GraphicsMode;
  * hora por hora. Además guarda una captura en build/screenshots para revisar el diseño.
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34, qualifiers = "es-w411dp-h3400dp-xxhdpi")
+@Config(sdk = 34, qualifiers = "es-w411dp-h4300dp-xxhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class HomeScreenTest {
 

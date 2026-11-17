@@ -42,6 +42,7 @@ import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.databinding.FragmentPlacesBinding;
 import martinlobato.com.ar.clima.databinding.ItemPlaceBinding;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
+import martinlobato.com.ar.clima.util.Fmt;
 import martinlobato.com.ar.clima.util.UnitFormat;
 import martinlobato.com.ar.clima.widget.WeatherWidgetProvider;
 
@@ -243,6 +244,16 @@ public class PlacesFragment extends Fragment {
         }, cached -> {
             if (binding == null) return;
             long now = System.currentTimeMillis();
+            // Lugares sin caché vigente: un guion y "Sin datos todavía" en vez de un hueco.
+            for (Map.Entry<String, ItemPlaceBinding> e : rows.entrySet()) {
+                Forecast f = cached.get(e.getKey());
+                if (f != null && now <= f.hourly.time[f.hourly.size() - 1]) continue;
+                ItemPlaceBinding row = e.getValue();
+                row.tvPlaceTemp.setText(Fmt.DASH);
+                row.tvPlaceTemp.setVisibility(View.VISIBLE);
+                row.tvPlaceHiLo.setText(R.string.place_no_data);
+                row.tvPlaceHiLo.setVisibility(View.VISIBLE);
+            }
             for (Map.Entry<String, Forecast> e : cached.entrySet()) {
                 ItemPlaceBinding row = rows.get(e.getKey());
                 Forecast f = e.getValue();

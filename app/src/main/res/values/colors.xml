@@ -79,4 +79,14 @@
     <color name="widget_bg">#f8fafd</color>
     <color name="widget_text">#141b24</color>
     <color name="widget_text_secondary">#535c66</color>
+
+    <!-- Íconos de clima a color (no siguen la paleta: el sol es amarillo en todas). -->
+    <color name="wx_sun">#F2A900</color>
+    <color name="wx_moon">#5C6BC0</color>
+    <color name="wx_cloud">#78838F</color>
+    <color name="wx_rain">#1A6FC2</color>
+    <color name="wx_snow">#3FA9E0</color>
+    <color name="wx_bolt">#EE9B00</color>
+    <color name="snow_rock">#8C857C</color>
+    <color name="snow_cap">#DCE9F5</color>
 </resources>

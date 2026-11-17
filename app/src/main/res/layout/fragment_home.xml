@@ -197,8 +197,7 @@
                                 android:id="@+id/ivCurrentIcon"
                                 android:layout_width="60dp"
                                 android:layout_height="60dp"
-                                android:contentDescription="@null"
-                                app:tint="?attr/colorPrimary" />
+                                android:contentDescription="@null" />
 
                             <TextView
                                 android:id="@+id/tvCurrentTemp"
@@ -258,6 +257,54 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Lluvia en las próximas horas -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/section_rain_soon"
+                    android:textAllCaps="true"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardRainSoon"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="?attr/colorOutlineVariant"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/tvRainSoon"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <martinlobato.com.ar.clima.ui.RainBarsView
+                            android:id="@+id/rainBars"
+                            android:layout_width="match_parent"
+                            android:layout_height="84dp"
+                            android:layout_marginTop="12dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Por hora: los 16 días en una sola tira horizontal -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -312,6 +359,38 @@
                             android:paddingHorizontal="6dp" />
 
                     </martinlobato.com.ar.clima.ui.NestedScrollableHost>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Próximos días -->
+                <TextView
+                    android:id="@+id/tvDailyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginTop="22dp"
+                    android:layout_marginBottom="8dp"
+                    android:textAllCaps="true"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="?attr/colorOutlineVariant"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:id="@+id/listDaily"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingVertical="6dp" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -411,6 +490,21 @@
                                 android:layout_marginTop="3dp"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:textSize="13.5sp" />
+
+                            <martinlobato.com.ar.clima.ui.ScoreStripView
+                                android:id="@+id/bestStrip"
+                                android:layout_width="match_parent"
+                                android:layout_height="46dp"
+                                android:layout_marginTop="14dp" />
+
+                            <TextView
+                                android:id="@+id/tvBestStripNote"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/best_strip_note"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -535,6 +629,27 @@
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardSnowLine"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="10dp"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <martinlobato.com.ar.clima.ui.SnowLineView
+                            android:id="@+id/snowLine"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:paddingHorizontal="12dp"
+                            android:paddingTop="10dp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
                     <LinearLayout
                         android:id="@+id/gridSnow"
                         android:layout_width="match_parent"
@@ -573,6 +688,25 @@
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardWave"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginBottom="10dp"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="?attr/colorOutlineVariant"
+                        app:strokeWidth="1dp">
+
+                        <martinlobato.com.ar.clima.ui.WaveView
+                            android:id="@+id/waveView"
+                            android:layout_width="match_parent"
+                            android:layout_height="70dp" />
+
+                    </com.google.android.material.card.MaterialCardView>
+
                     <LinearLayout
                         android:id="@+id/gridSea"
                         android:layout_width="match_parent"
@@ -581,38 +715,6 @@
                         android:orientation="vertical" />
 
                 </LinearLayout>
-
-                <!-- Próximos días -->
-                <TextView
-                    android:id="@+id/tvDailyTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="22dp"
-                    android:layout_marginBottom="8dp"
-                    android:textAllCaps="true"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="12.5sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
-                    app:cardBackgroundColor="?attr/colorSurface"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:strokeColor="?attr/colorOutlineVariant"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:id="@+id/listDaily"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingVertical="6dp" />
-
-                </com.google.android.material.card.MaterialCardView>
 
                 <!-- Sol -->
                 <TextView

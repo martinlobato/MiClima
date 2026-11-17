@@ -20,14 +20,20 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginTop="8dp"
-        android:contentDescription="@null"
-        app:tint="?attr/colorOnSurface" />
+        android:contentDescription="@null" />
+
+    <!-- Línea de temperatura: cada ficha dibuja su tramo y juntas forman la curva. -->
+    <martinlobato.com.ar.clima.ui.TempLineView
+        android:id="@+id/tempLine"
+        android:layout_width="match_parent"
+        android:layout_height="34dp"
+        android:layout_marginTop="6dp" />
 
     <TextView
         android:id="@+id/tvTemp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:textColor="?attr/colorOnSurface"
         android:textSize="15.5sp"
         android:textStyle="bold" />
@@ -38,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:maxLines="1"
-        android:textColor="?attr/colorPrimary"
+        android:textColor="@color/wx_rain"
         android:textSize="11.5sp"
         android:textStyle="bold" />
 

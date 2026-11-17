@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,7 +24,6 @@ import martinlobato.com.ar.clima.data.PlaceStore;
 import martinlobato.com.ar.clima.data.WeatherCode;
 import martinlobato.com.ar.clima.data.WeatherRepository;
 import martinlobato.com.ar.clima.util.BackgroundExecutor;
-import martinlobato.com.ar.clima.util.ThemeUtils;
 import martinlobato.com.ar.clima.util.UnitFormat;
 
 /**
@@ -119,8 +117,6 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
 
         UnitFormat uf = Prefs.units(context);
         // El transparente va todo en blanco para leerse sobre cualquier fondo de pantalla.
-        int accent = kind == Kind.LOCK ? Color.WHITE : ThemeUtils.currentPrimaryColor(context);
-        int iconColor = ContextCompat.getColor(context, R.color.widget_text);
         Forecast.Hourly h = f.hourly;
         int hourIdx = f.hourIndexAt(now);
         int dayIdx = f.dayIndexAt(now);
@@ -133,7 +129,9 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
                 kind == Kind.COMPACT ? R.string.widget_hi_lo_short : R.string.hi_lo,
                 uf.temp(f.daily.tempMax[dayIdx]), uf.temp(f.daily.tempMin[dayIdx])));
         views.setImageViewResource(R.id.widgetIcon, WeatherCode.icon(h.code[hourIdx], h.isDay[hourIdx]));
-        views.setInt(R.id.widgetIcon, "setColorFilter", accent);
+        // Íconos a color propio; solo el de pantalla de bloqueo va todo en blanco. Un filtro
+        // transparente (0) con SRC_ATOP no cambia nada y limpia el que pudiera quedar.
+        views.setInt(R.id.widgetIcon, "setColorFilter", kind == Kind.LOCK ? Color.WHITE : 0);
         if (kind == Kind.COMPACT) return views;
 
         String condition = context.getString(WeatherCode.description(h.code[hourIdx]));
@@ -158,7 +156,7 @@ public class WeatherWidgetProvider extends AppWidgetProvider {
             if (!has) continue;
             views.setTextViewText(SLOT_HOUR[slot], hourFmt.format(new Date(h.time[i])));
             views.setImageViewResource(SLOT_ICON[slot], WeatherCode.icon(h.code[i], h.isDay[i]));
-            views.setInt(SLOT_ICON[slot], "setColorFilter", iconColor);
+            views.setInt(SLOT_ICON[slot], "setColorFilter", 0);
             views.setTextViewText(SLOT_TEMP[slot], uf.temp(h.temp[i]));
         }
         return views;

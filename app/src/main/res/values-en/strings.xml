@@ -334,4 +334,20 @@
     <string name="places_open_map">View in Google Maps</string>
     <string name="places_no_maps">No maps app is installed.</string>
     <string name="fmt_place_time">%1$s · local time</string>
+
+    <!-- Gráficos (rediseño) -->
+    <string name="label_rain_next_hour">Rain next hour</string>
+    <string name="section_rain_soon">Rain · next 24 h</string>
+    <string name="rain_soon_none">No rain in sight for the next %1$d h</string>
+    <string name="rain_soon_now">Raining now · %1$s in total</string>
+    <string name="rain_soon_from">Rain likely from %1$s · %2$s in total</string>
+    <string name="best_strip_note">Green: good conditions · red: poor. Framed: the best window.</string>
+    <string name="fmt_freezing_label">0 °C · %1$s</string>
+    <string name="fmt_rain_drop">💧%1$s</string>
+    <string name="label_sun_moon">Sun and moon</string>
+    <string name="place_no_data">No data yet</string>
+    <string name="palette_auto_desc">Wallpaper colors</string>
+    <string name="fmt_sunrise_short">☀ Rises %1$s</string>
+    <string name="fmt_sunset_short">Sets %1$s</string>
+    <string name="fmt_moon_times">Rises %1$s · sets %2$s</string>
 </resources>

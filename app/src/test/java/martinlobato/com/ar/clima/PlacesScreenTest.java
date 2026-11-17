@@ -116,7 +116,10 @@ public class PlacesScreenTest {
                 assertTrue(hiLo, hiLo.matches("-?\\d+° / -?\\d+°"));
                 String time = ((TextView) rioja.findViewById(R.id.tvPlaceTime)).getText().toString();
                 assertTrue(time, time.endsWith("· hora local"));
-                assertEquals(View.GONE, list.getChildAt(2).findViewById(R.id.tvPlaceTemp).getVisibility());
+                // Sin caché: un guion y "Sin datos todavía" en lugar de un hueco.
+                assertEquals("—", ((TextView) list.getChildAt(2).findViewById(R.id.tvPlaceTemp)).getText().toString());
+                assertEquals("Sin datos todavía",
+                        ((TextView) list.getChildAt(2).findViewById(R.id.tvPlaceHiLo)).getText().toString());
                 // Cada lugar guardado tiene su botón de Google Maps.
                 assertEquals(View.VISIBLE, rioja.findViewById(R.id.btnPlaceMap).getVisibility());
                 TestData.saveScreenshot(a.getWindow().getDecorView(), "places-light");

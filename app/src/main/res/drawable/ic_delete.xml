@@ -3,7 +3,11 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Tacho de trazo (mismo estilo que el resto de los íconos). -->
     <path
-        android:fillColor="@android:color/black"
-        android:pathData="M6,19c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2L18,7L6,7v12zM19,4h-3.5l-1,-1h-5l-1,1H5v2h14V4z" />
+        android:pathData="M3,6h18M8,6V4a1,1 0 0 1 1,-1h6a1,1 0 0 1 1,1v2M19,6l-1,14a2,2 0 0 1 -2,2H8a2,2 0 0 1 -2,-2L5,6M10,11v6M14,11v6"
+        android:strokeColor="@android:color/black"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
 </vector>

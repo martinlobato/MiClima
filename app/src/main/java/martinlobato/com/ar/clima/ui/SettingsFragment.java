@@ -224,7 +224,15 @@ public class SettingsFragment extends Fragment {
                              final String paletteValue, String current) {
         GradientDrawable circle = new GradientDrawable();
         circle.setShape(GradientDrawable.OVAL);
-        circle.setColor(ContextCompat.getColor(appCtx, colorRes));
+        if (Prefs.PALETTE_AUTO.equals(paletteValue)) {
+            // "Automático" toma los colores del fondo de pantalla: se muestra como una ruleta
+            // de colores para que no parezca una paleta más.
+            circle.setGradientType(GradientDrawable.SWEEP_GRADIENT);
+            circle.setColors(new int[]{0xFF7E57C2, 0xFF1E88E5, 0xFF26A69A, 0xFF7CB342,
+                    0xFFFFB300, 0xFFE53935, 0xFF7E57C2});
+        } else {
+            circle.setColor(ContextCompat.getColor(appCtx, colorRes));
+        }
         swatch.swatchCircle.setBackground(circle);
         swatch.swatchLabel.setText(labelRes);
         swatch.swatchCheck.setVisibility(paletteValue.equals(current) ? View.VISIBLE : View.GONE);
