@@ -14,6 +14,9 @@ App Android de clima con **toda la información dentro de la app**: pronóstico 
 
 - **Open-Meteo** (`api.open-meteo.com/v1/forecast`), sin API key. Uso gratuito = no comercial y
   con atribución (se muestra en Inicio y Ajustes). Si la app se monetiza hay que pasar al plan pago.
+- Todas las consultas llevan `User-Agent: MiClima/<versión> (Android)` (`data/Http`). No quitarlo:
+  con el User-Agent por defecto de Android el pronóstico devolvía HTTP 403 en el teléfono, y dejó
+  de fallar al agregarlo.
 - `data/WeatherApi` arma la URL (lat/lon redondeadas a 2 decimales) y baja el JSON con
   `HttpURLConnection`. `data/ForecastParser` lo convierte en `Forecast` (null → `NaN`; los tiempos
   ISO son hora local **del lugar**, se convierten a epoch con la zona que informa la API).
@@ -85,6 +88,5 @@ generar el `.aab` firmado.
 
 ## Pendiente
 
-- Causa del HTTP 403 que devolvió el pronóstico en el teléfono (sin confirmar).
 - Verificar en un teléfono: modelos GFS/ICON/GEM/Météo-France, widgets, segundo plano y aviso
   de lluvia.
